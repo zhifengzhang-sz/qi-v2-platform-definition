@@ -12,7 +12,7 @@ The platform's formal definition in Lean 4, on Kahn process networks (Kahn, 1974
 | `lean/Kahn/Log.lean` | a log: an append-only sequence of messages, finite or endless, ordered by prefix; every log is the limit of its finite prefixes |
 | `lean/Kahn/Merge.lean` | no process merges two logs by arrival |
 | `lean/Kafka.lean` | Kafka's topic: one log of records for each partition, everything ever appended to it; no view that replaces a record already given, as compaction and retention do, is a process |
-| `lean/Acquisition.lean` | acquisition: a k-line contract's two readers (the vendor's, the reset's), cleaner and publisher, the four kinds of data it publishes, and the clean series' resets, each a replay; nothing published is taken back (`docs/acquisition.md` explains it) |
+| `lean/Acquisition.lean` | acquisition: a k-line contract's reader, cleaner and publisher, and the three kinds of data it publishes: the raw series (the vendor's corrected raw series, then its raw series), the clean series made from it, and the vendor's corrections; nothing published is taken back (`docs/acquisition.md` explains it) |
 | `lean/Warehousing.lean` | warehousing: the warehouse consumer, one for each schema, on every partition |
 | `lean/Visualization.lean` | visualization: a pure consumer of the clean topics and the engine's, giving the chart |
 | `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on the clean topics, publishing its own |

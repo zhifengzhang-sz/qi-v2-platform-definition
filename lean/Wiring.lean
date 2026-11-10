@@ -11,9 +11,8 @@ import Workspace
 
 The components as one working space, wired by the topics:
 
-* acquisition, one in a working space, reads its source, the vendor's corrections stream and the
-  history its reset replays, and writes its topics of the four kinds: raw, corrected raw, clean,
-  corrections;
+* acquisition, one in a working space, reads its source and the vendor's corrections stream, and
+  writes its topics of the three kinds: raw, clean, corrections;
 * warehousing reads all of acquisition's topics, of every kind, and pushes them all into the database;
 * the market model engine, when the working space has one, reads clean topics, and writes topics of
   its own;
@@ -31,12 +30,10 @@ open Kahn
 
 namespace Wiring
 
-/-- The input logs: acquisition's source, the vendor's corrections stream, and the history the reset
-replays. -/
+/-- The input logs: acquisition's source, and the vendor's corrections stream. -/
 inductive Feed where
   | source
   | corrections
-  | history
 
 /-- Acquisition's topics: every topic of every kind. -/
 abbrev AcqTopic (A : Acquisition.Data) := Σ κ : Acquisition.Kind, A.Topic κ
@@ -157,7 +154,6 @@ variable (S : Wiring)
 def InputMsg : Feed → Type
   | .source => S.A.Source
   | .corrections => S.A.Correction
-  | .history => S.A.History
 
 /-- The topics each component writes: acquisition's and the engine's; the others write none. -/
 def Topic : Workspace.Component → Type
@@ -220,8 +216,7 @@ abbrev Topics := ∀ (c : Workspace.Component) (t : S.Topic c), (S.topic c t).Lo
 /-- The input logs, side by side, as acquisition reads them. -/
 def feeds : Process S.Inputs (Acquisition.In S.A) :=
   Process.pair (Process.proj (κ := fun i => Log (S.InputMsg i)) .source)
-    (Process.pair (Process.proj (κ := fun i => Log (S.InputMsg i)) .corrections)
-      (Process.proj (κ := fun i => Log (S.InputMsg i)) .history))
+    (Process.proj (κ := fun i => Log (S.InputMsg i)) .corrections)
 
 /-- Acquisition: from the inputs to all of its topics. -/
 def acquisitions : Process S.Inputs (AcqTopics S.A) :=
@@ -275,14 +270,11 @@ theorem acquisition_topics (i : S.Inputs) :
     S.workspace.topics i .acquisition = S.acquisitions i :=
   S.workspace.acquisition_topics i
 
-/-- The clean topics hold what the publisher makes of the clean series alone: the cleaner on the
-corrected raw series, from the source and the corrections, and on the replay of the history. -/
+/-- The clean topics hold what the publisher makes of the clean series alone: the cleaner on the raw
+series, the reader's from the source. -/
 theorem clean_topics (i : S.Inputs) (t : S.A.Topic .clean) :
     S.workspace.topics i .acquisition ⟨.clean, t⟩ =
-      S.acquisition.publishClean
-        (S.acquisition.cleaner (S.acquisition.correct (S.acquisition.reader (i .source), i .corrections),
-          S.acquisition.replayer (i .history)))
-        t := by
+      S.acquisition.publishClean (S.acquisition.cleaner (S.acquisition.reader (i .source))) t := by
   rw [S.acquisition_topics i]
   rfl
 
