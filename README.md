@@ -24,7 +24,7 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
 ## The product
 
-`qi-v2-platform-definition` is a flake package of `lean/`, the Lake package `qi-v2-platform-definition`, as source, with this file and `LICENSE`, for a taker's Lake, on `x86_64-linux`. In the package the files of `lean/` are at its root, beside this file and `LICENSE`, and nothing else of the repository is there: the other paths this file and the Lean's comments name (`docs/`, `PRODUCTS.md`, `dev/`, the make targets) are the repository's. Its Lean is the one `lean/lean-toolchain` names, 4.35.0-rc3. It is not released yet; a release is a tag `qi-v2-platform-definition-<version>` (Changes, below), read over HTTPS with no login.
+`qi-v2-platform-definition` is a flake package of `lean/`, the Lake package `qi-v2-platform-definition`, as source, with this file and `LICENSE`, for a taker's Lake, on `x86_64-linux`. In the package the files of `lean/` are at its root, beside this file and `LICENSE`, and nothing else of the repository is there: the other paths this file and the Lean's comments name (`docs/`, `PRODUCTS.md`, `dev/`, the make targets) are the repository's. Its Lean is the one `lean/lean-toolchain` names, 4.35.0-rc3. Its release is 0.1.0, the tag `qi-v2-platform-definition-0.1.0`; a release is a tag `qi-v2-platform-definition-<version>` (Changes, below), read over HTTPS with no login.
 
 ## Checking it
 
@@ -32,4 +32,4 @@ In the project's shell (`nix develop`), once: `make install`. Then `make lean` b
 
 ## Changes
 
-None yet: 0.1.0 is not released.
+- **0.1.0**: the first release. The base (Kahn process networks: domains, processes, networks, logs, sets of rows), Kafka's topic, the four components (acquisition, warehousing, visualization, the market model engine) and their wiring; 51 theorems, each proved on Lean's standard axioms only; Lean 4.35.0-rc3.

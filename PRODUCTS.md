@@ -8,7 +8,7 @@ It owns the platform's formal definition in Lean: the base (Kahn process network
 
 | Product | What | Form | Version | Release | Doc |
 |---|---|---|---|---|---|
-| `qi-v2-platform-definition` | the Lake package of `lean/`, as source: the base, Kafka's topic, the four components and their wiring | flake package | 0.1.0 | not yet released | `README.md` |
+| `qi-v2-platform-definition` | the Lake package of `lean/`, as source: the base, Kafka's topic, the four components and their wiring | flake package | 0.1.0 | `qi-v2-platform-definition-0.1.0` | `README.md` |
 
 ## Takes
 
