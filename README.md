@@ -11,12 +11,13 @@ The platform's formal definition in Lean 4, on Kahn process networks (Kahn, 1974
 | `lean/Kahn/Network.lean` | a network: its equations and their least solution, which is again a process (Kahn's theorem) |
 | `lean/Kahn/Log.lean` | a log: an append-only sequence of messages, finite or endless, ordered by prefix; every log is the limit of its finite prefixes |
 | `lean/Kahn/Merge.lean` | no process merges two logs by arrival |
+| `lean/Kahn/Rows.lean` | a set of rows: messages in no order; several logs into one set of rows is a process |
 | `lean/Kafka.lean` | Kafka's topic: one log of records for each partition, everything ever appended to it; no view that replaces a record already given, as compaction and retention do, is a process |
 | `lean/Acquisition.lean` | acquisition: a k-line contract's reader, cleaner and publisher, and the three kinds of data it publishes: the raw series (the vendor's corrected raw series, then its raw series), the clean series made from it, and the vendor's corrections; nothing published is taken back (`docs/acquisition.md` explains it) |
 | `lean/Warehousing.lean` | warehousing: the warehouse consumer, one for each schema, on every partition |
 | `lean/Visualization.lean` | visualization: a pure consumer of the clean topics and the engine's, giving the chart |
 | `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on the clean topics, publishing its own |
-| `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; several working spaces side by side, each topic and each table with one writer |
+| `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; a table of the database the rows pushed into it, in no order; several working spaces side by side, each topic with one writer and each table one working space |
 | `lean/Wiring.lean` | the components as one working space, the engine optional, and what the whole system comes to |
 
 The decisions behind the definitions, and those still open: `docs/decisions.md`.

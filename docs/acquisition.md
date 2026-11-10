@@ -126,7 +126,7 @@ structure Acquisition (D : Acquisition.Data) where
 `Series`, `Topics` and the other shorthands can be written without the prefix.
 
 ### `structure Acquisition (D : Acquisition.Data)`
-The acquisition of a k-line contract, for a given $D$: the reader, the cleaner, and the publisher in three parts. Each field is a process; how each is made is the implementation's.
+The acquisition of a k-line contract, for a given $D$: the reader, the cleaner, and the publisher in three parts. Each field is a process; how each is made is the implementation's. So is what each gives: any process of a field's type fills it, one that gives nothing among them (`Process.const` in `lean/Kahn/Process.lean`, at the least output). The definition holds a part to what it reads and writes and to Kahn's condition; that the topics of a kind hold their series is not required here, and is not a theorem.
 
 ### `reader : Process (Log D.Source) (Series D)`
 The reader reads the source and gives the raw series.

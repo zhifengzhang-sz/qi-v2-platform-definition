@@ -13,7 +13,9 @@ The components as one working space, wired by the topics:
 
 * acquisition, one in a working space, reads its source and the vendor's corrections stream, and
   writes its topics of the three kinds: raw, clean, corrections;
-* warehousing reads all of acquisition's topics, of every kind, and pushes them all into the database;
+* warehousing reads all of acquisition's topics, of every kind, and pushes them all into the database:
+  a topic's table holds what the consumer pushes for every one of its partitions, in no order
+  (`table_rows`);
 * the market model engine, when the working space has one, reads clean topics, and writes topics of
   its own;
 * visualization reads clean topics and all of the engine's, and gives the chart in the HTML page.
@@ -131,7 +133,8 @@ structure Wiring where
   Push : (K V : Type) → Type
   /-- warehousing, on all of acquisition's topics -/
   warehousing : Warehousing (warehousingData A Push)
-  /-- the table of the database each of acquisition's topics is pushed into -/
+  /-- the table of the database each of acquisition's topics is pushed into, every partition of it;
+  several topics may go into one table -/
   table : AcqTopic A → String
   /-- the market model engine, if the working space has one -/
   engine : Option (Engine A)
@@ -294,6 +297,18 @@ theorem warehousing_pushes (i : S.Inputs) (t : AcqTopic S.A) (p : Fin (acqTopic 
   show S.warehousing.consumer _ _ (S.workspace.topics i .acquisition t p) = _
   rw [S.acquisition_topics i]
   rfl
+
+/-- The table named `name` holds, for partition `p` of a topic `t` pushed into it, exactly the
+messages the consumer of `t`'s schema pushes for that partition of what acquisition writes, in no
+order. -/
+theorem table_rows (i : S.Inputs) (name : String) (t : AcqTopic S.A)
+    (p : Fin (acqTopic S.A t).partitions) (h : S.table t = name)
+    (m : S.Push (acqTopic S.A t).Key (acqTopic S.A t).Value) :
+    (S.workspace.tableRows name i).has ⟨⟨⟨t, p⟩, h⟩, m⟩ ↔
+      ∃ n, (S.warehousing.consumer (acqTopic S.A t).Key (acqTopic S.A t).Value
+        (S.acquisitions i t p)).get n = some m := by
+  rw [← S.warehousing_pushes i t p]
+  exact Iff.rfl
 
 /-- Visualization's chart is drawn from its clean topics and the engine's topics. -/
 theorem visualization_chart (i : S.Inputs) :

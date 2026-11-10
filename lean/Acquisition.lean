@@ -10,6 +10,13 @@ implementation's. Cleaning happens in acquisition, not in warehousing. A working
 acquisition (`lean/Wiring.lean`); several working spaces may work side by side, one for each
 acquisition (`Workspaces`, `lean/Workspace.lean`).
 
+Each part is any process of its type, one that gives nothing among them (`Process.const`, at the
+least output). The
+definition holds a part to what it reads and writes, a part of the publisher to the topics of its
+own kind, and to Kahn's condition: it never takes back output, and waits for no end. What a part
+gives is the implementation's: that the reader gives the vendor's series, the cleaner a clean one,
+and the topics of a kind hold their series, is not required here, and is not a theorem.
+
 Acquisition publishes three kinds of data, each to topics of its own kind: the raw series, the clean
 series and the vendor's corrections. The clean series is made from the raw series. The vendor's
 corrections are published as they come, and acquisition applies them to nothing: it makes no

@@ -5,8 +5,8 @@ import Kafka
 # The working space
 
 The system on Kahn's base: four components, acquisition, warehousing, visualization and the market
-model engine (optional), wired by the topics. This file says only that much. What each component
-reads, writes and does is defined in its own project.
+model engine (optional), wired by the topics. This file says that much, and what a table of the
+database holds. What each component reads, writes and does is defined in its own project.
 
 Acquisition is the one component that reads the system's input logs (the vendor's); the others read
 the topics, and nothing else. Each writes topics of its own, and logs that leave the system (what
@@ -15,9 +15,19 @@ number of readers; no two topics have the same name. Two writers into one log wo
 arrival, which is not a Kahn process (`Kahn.no_arrival_merge`). Only warehousing writes into the
 database.
 
+A table of the database is a set of rows: it holds the rows of every log warehousing pushes into
+it, in no order (`Workspace.tableRows`). Several logs into one table is a process
+(`Kahn.Rows.ofLogs`), where two logs into one log, in the order their messages arrive, is not
+(`Kahn.no_arrival_merge`): a set of rows does not say which came first. That a table is a set of
+rows is a modelling choice, not a theorem, and so is what a row is: a message marked with the log
+it is from, so that a message one log pushes twice is one row, and a message two logs push is two.
+
 A working space has one acquisition. Several working spaces may work side by side, one for each
-acquisition (`Workspaces`): each topic and each table of the database still has one writer, so no two
-topics of any of them have the same name, and no table is written by two of them.
+acquisition (`Workspaces`): each topic still has one writer, so no two topics of any of them have
+the same name, and each table has one working space, so no table is written by two of them. A
+topic's reason is its logs: two writers into one log would merge by arrival. A table keeps no
+order and has no such reason: one working space to a table is a modelling choice, by which what a
+table holds is defined within one working space.
 -/
 
 noncomputable section
@@ -130,11 +140,35 @@ theorem topics_least (i : W.Inputs) (t : W.Topics) (h : ∀ c, (W.run c (i, t)).
 theorem acquisition_topics (i : W.Inputs) : W.topics i .acquisition = (W.acquisition i).1 :=
   (W.topics_eq i .acquisition).symm
 
+/-- The logs warehousing pushes into the table named `name`. -/
+abbrev TableLog (name : String) := { o : W.Output .warehousing // W.table o = name }
+
+/-- What a row of the table named `name` can be: a message of one of the logs pushed into it,
+marked with that log. Which rows the table holds is `tableRows`. -/
+abbrev TableRow (name : String) := Σ o : W.TableLog name, W.OutputMsg .warehousing o.1
+
+/-- What the table named `name` holds, from the logs that leave the system: the rows of every log
+pushed into it, in no order. -/
+def tableOf (name : String) : Process W.Outputs (Rows (W.TableRow name)) :=
+  Rows.ofLogs ⊚ Process.pi fun o : W.TableLog name =>
+    Process.proj (κ := fun o => Log (W.OutputMsg .warehousing o)) o.1 ⊚
+      Process.proj (κ := fun c => ∀ o : W.Output c, Log (W.OutputMsg c o)) .warehousing
+
+/-- The table named `name`, as one process of the input logs. -/
+def tableRows (name : String) : Process W.Inputs (Rows (W.TableRow name)) :=
+  W.tableOf name ⊚ Process.snd ⊚ W.system
+
+/-- A table holds a row exactly when the log it is from holds its message, at some position. -/
+theorem has_tableRows (i : W.Inputs) (name : String) (o : W.TableLog name)
+    (m : W.OutputMsg .warehousing o.1) :
+    (W.tableRows name i).has ⟨o, m⟩ ↔ ∃ n, ((W.system i).2 .warehousing o.1).get n = some m :=
+  Iff.rfl
+
 end Workspace
 
-/-- Several working spaces side by side, one for each acquisition. Each topic and each table of the
-database has one writer: no two topics of any of them have the same name, and no table is written by
-two of them. -/
+/-- Several working spaces side by side, one for each acquisition. Each topic has one writer and
+each table of the database one working space: no two topics of any of them have the same name, and
+no table is written by two of them. -/
 structure Workspaces (ι : Type) where
   /-- the working spaces -/
   space : ι → Workspace
