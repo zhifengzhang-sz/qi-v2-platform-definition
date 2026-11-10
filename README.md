@@ -23,11 +23,11 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
 ## The product
 
-`qi-v2-platform-definition` is a flake package of `lean/`, the Lake package `qi-v2-platform-definition`, as source, with this file and `LICENSE`, for a taker's Lake, on `x86_64-linux`. Its Lean is the one `lean/lean-toolchain` names, 4.35.0-rc3. It is not released yet; a release is a tag `qi-v2-platform-definition-<version>` (Changes, below), read over HTTPS with no login.
+`qi-v2-platform-definition` is a flake package of `lean/`, the Lake package `qi-v2-platform-definition`, as source, with this file and `LICENSE`, for a taker's Lake, on `x86_64-linux`. In the package the files of `lean/` are at its root, beside this file and `LICENSE`, and nothing else of the repository is there: the other paths this file and the Lean's comments name (`docs/`, `PRODUCTS.md`, `dev/`, the make targets) are the repository's. Its Lean is the one `lean/lean-toolchain` names, 4.35.0-rc3. It is not released yet; a release is a tag `qi-v2-platform-definition-<version>` (Changes, below), read over HTTPS with no login.
 
 ## Checking it
 
-In the project's shell (`nix develop`), once: `make install`. Then `make lean` builds the definitions and checks every proof, and `make verify` runs every check a commit requires. `make help` lists the targets.
+In the project's shell (`nix develop`), once: `make install`. Then `make lean` builds the definitions, checks every proof, and checks that no constant of `lean/` rests on an axiom other than Lean's three (`dev/axioms.lean`), and `make verify` runs every check a commit requires. `make help` lists the targets.
 
 ## Changes
 

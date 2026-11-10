@@ -9,8 +9,9 @@ reads. Wires may loop. The network's meaning is the least solution, and that mea
 process from the network's inputs to its outputs (Kahn's theorem: the continuity proved in `solve`,
 used by `Network.denote`): a network of components is itself a component.
 
-This is what a network means. That the real components, run in any order, compute this least
-solution is Kahn's result about running networks; it is assumed here, not proved.
+This is what a network means. That the real components compute this least solution, in whatever
+order they run so long as it is fair (no component that can go on waits for ever), is Kahn's result
+about running networks; it is assumed here, not proved.
 -/
 
 universe u v w

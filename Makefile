@@ -65,10 +65,12 @@ products-check: ## whether PRODUCTS.md states what the project has (the kit's ki
 
 # ---------------------------------------------------------------- the Lean (lean/, README.md)
 
-lean: ## the definitions built and every proof checked by Lake, with the shell's Lean once its version is the one lean/lean-toolchain names; a proof left as sorry fails it; Lake's lines in .reports/lean.log
+lean: ## the definitions built and every proof checked by Lake, with the shell's Lean once its version is the one lean/lean-toolchain names; a proof left as sorry fails it, and so does a constant of lean/ resting on an axiom other than Lean's three (dev/axioms.lean, every file of lean/); Lake's lines in .reports/lean.log, the audit's in .reports/axioms.log
 	@v=$$(lean --version | sed -n 's/^Lean (version \([^,]*\),.*/\1/p'); \
 	t=$$(sed 's|^leanprover/lean4:v||' lean/lean-toolchain); \
 	[ -n "$$v" ] && [ "$$t" = "$$v" ] || { echo "lean: the shell's Lean is '$$v', lean/lean-toolchain names '$$t'"; exit 1; }
 	@mkdir -p .reports
 	@cd lean && lake build 2>&1 | tee ../.reports/lean.log; test $${PIPESTATUS[0]} -eq 0
 	@! grep -q "declaration uses .sorry." .reports/lean.log || { echo "lean: a proof is left as sorry (.reports/lean.log)"; exit 1; }
+	@cd lean && lake env lean ../dev/axioms.lean > ../.reports/axioms.log 2>&1 || { grep -E "AXIOMS|error" ../.reports/axioms.log; echo "lean: the axiom audit failed (.reports/axioms.log)"; exit 1; }
+	@tail -n 1 .reports/axioms.log

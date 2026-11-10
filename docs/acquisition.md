@@ -142,7 +142,7 @@ What it leaves free:
 - How records become k-lines: several records can make one k-line, and a record can make none.
 - When a k-line is given, as long as it comes after finitely many records.
 
-One consequence: a reader that builds 1-minute bars from trades can give the bar for 10:00 only once something in its input shows that 10:00 is over, such as a trade at 10:01. A process can't react to nothing arriving. If the reader should also close a bar on the clock, the clock has to be one of its input logs.
+One consequence: a reader that builds 1-minute bars from trades can give the bar for 10:00 only once something in its input shows that 10:00 is over, such as a trade at 10:01. A process can't react to nothing arriving. If the reader should also close a bar on the clock, the clock's ticks have to be records of the source, in the order the reader reads them. A clock as a second log beside the source would not do: a process is a function of its logs, and two logs side by side do not say which of their records came first.
 
 The raw series has two parts: first the vendor's corrected raw series, then the vendor's raw series, appended to it. The reader reads both parts; how (a replayer in it, say) is the implementation's, and so is the switch from the first part to the second. In the definition the source is one log, holding what the reader reads in the order it reads it, and the reader is one process of that log. That the source holds the corrected raw series first is a modelling choice, not a theorem. A reset, which reads the corrected raw series again, is outside the working space: within one, nothing starts again.
 
