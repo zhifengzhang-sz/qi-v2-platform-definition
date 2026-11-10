@@ -6,7 +6,6 @@ import Kahn.Log
 Two writers into one log: the log holds their messages in the order they arrive. A merge by arrival
 passes on a message once it has arrived, even while nothing has arrived from the other writer. With
 one message from each writer it would then have to put both first, so no process merges by arrival.
-A process can still merge by content: for example the left's first message, then the right's.
 -/
 
 universe u

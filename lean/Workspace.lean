@@ -6,7 +6,9 @@ import Kafka
 
 The system on Kahn's base: four components, acquisition, warehousing, visualization and the market
 model engine (optional), wired by the topics. This file says that much, and what a table of the
-database holds. What each component reads, writes and does is defined in its own project.
+database holds. What each component reads and writes is defined in its own file (`Acquisition`,
+`Warehousing`, `Visualization`, `MarketModelEngine`), and `Wiring` puts the four together as one
+working space. What a component does is the implementation's, in its own project.
 
 Acquisition is the one component that reads the system's input logs (the vendor's); the others read
 the topics, and nothing else. Each writes topics of its own, and logs that leave the system (what

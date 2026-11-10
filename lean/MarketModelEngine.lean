@@ -4,11 +4,12 @@ import Kafka
 /-!
 # The market model engine
 
-Optional. A worker: it reads the clean k-line topics and publishes topics of its own, whose messages
-derive from the chanlun contract 3.1.0.
+Optional. A worker: it reads the clean k-line topics and publishes topics of its own. What their
+messages are is left open: each topic's key and value types, which its schema fixes (`Kafka.Topic`).
 
-Reading several topics or partitions is a process only if the worker combines them by content (for
-example by bar time), not by arrival (`Kahn.no_arrival_merge`).
+The worker is a process of the topics it reads. Reading several topics or partitions into one log,
+as their records arrive, would be a merge by arrival, which is not a process
+(`Kahn.no_arrival_merge`). How the worker combines them is the implementation's.
 -/
 
 noncomputable section
@@ -21,7 +22,7 @@ structure MarketModelEngine.Data where
   In : Type
   /-- each one a Kafka topic -/
   inTopic : In → Kafka.Topic
-  /-- the topics the engine publishes; their messages derive from the chanlun contract 3.1.0 -/
+  /-- the topics the engine publishes; what their messages are is left open -/
   Out : Type
   /-- each one a Kafka topic -/
   outTopic : Out → Kafka.Topic

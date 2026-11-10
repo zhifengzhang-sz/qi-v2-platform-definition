@@ -9,9 +9,9 @@ there, the engine's topics. It gives nothing in the Kafka sense: it displays the
 page. That display is its output, a log of chart updates that leaves the system; the chart on the
 page at any moment is what the updates so far make.
 
-Reading several topics into one log of updates is a process only if it combines them by content
-(for example by bar time, waiting until every topic has passed it), not by arrival
-(`Kahn.no_arrival_merge`).
+Visualization is a process of the topics it reads (`chart`). Putting their records into the one log
+of updates as they arrive would be a merge by arrival, which is not a process
+(`Kahn.no_arrival_merge`). How it combines them is the implementation's.
 -/
 
 noncomputable section

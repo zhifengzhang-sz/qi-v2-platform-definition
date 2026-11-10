@@ -5,7 +5,8 @@ Kahn orders the values a channel can hold by "more": a log that has received mor
 above the log it was before. A domain is a partial order with a least element (nothing yet) in
 which every chain (values growing step by step) has a least upper bound (where the chain goes).
 
-This library stands alone. Mathlib has the same notions as `OmegaCompletePartialOrder`.
+This library stands alone. Mathlib's `OmegaCompletePartialOrder` is the same notion without the
+least element: a partial order in which every chain has a least upper bound.
 -/
 
 universe u v w

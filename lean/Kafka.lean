@@ -7,6 +7,10 @@ Every topic has the same shape, Kafka's. A topic is seen as its log: everything 
 What retention or compaction leave readable is a view of that log, not the log itself: no
 process gives that view (`compaction_not_process`).
 
+That a reader reads the whole log is assumed here, not proved: it holds where retention and
+compaction remove no record before the reader has read it. It is an assumption about running, like
+the fair order of a network (`Kahn/Network.lean`).
+
 Taken as given, like replication and brokers: how records travel and are stored (batches,
 compression, transactions, producer ids). A record's position in its log stands for its offset:
 Kafka's offsets can skip numbers, but their order is the same. Which partition a record goes to is
