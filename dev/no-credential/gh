@@ -1,0 +1,5 @@
+#!/bin/sh
+# gh as make locks-check gives it to the kit: never run. A gh logged in, by its config or the system's keyring, acts
+# with the owner's token, which is not used without asking (agents/rules.md, The credentials).
+echo "gh: not run by make locks-check: it would act with the owner's login (agents/rules.md, The credentials)" >&2
+exit 1

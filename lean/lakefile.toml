@@ -1,0 +1,26 @@
+name = "qi-v2-platform-definition"
+defaultTargets = ["Kahn", "Kafka", "Acquisition", "Warehousing", "Visualization", "MarketModelEngine", "Workspace", "Wiring"]
+
+[[lean_lib]]
+name = "Kahn"
+
+[[lean_lib]]
+name = "Workspace"
+
+[[lean_lib]]
+name = "Kafka"
+
+[[lean_lib]]
+name = "Acquisition"
+
+[[lean_lib]]
+name = "Warehousing"
+
+[[lean_lib]]
+name = "Visualization"
+
+[[lean_lib]]
+name = "MarketModelEngine"
+
+[[lean_lib]]
+name = "Wiring"

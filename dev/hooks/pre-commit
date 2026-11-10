@@ -1,0 +1,28 @@
+#!/bin/sh
+# What a commit requires is the project's (make verify): its checks, for a commit by any kind of agent or by hand.
+# make verify checks the work tree, so the work tree must be what is staged: a change not staged, or a new file not
+# added, stops the commit before the checks; a file make verify changes stops it after them. Installed by make
+# install (git config core.hooksPath dev/hooks); run in this project's own shell (QI_DEFINITION_SHELL, set by its flake),
+# which gives every tool the targets call.
+staged() {
+  git diff --quiet && test -z "$(git ls-files --others --exclude-standard)"
+}
+staged || {
+  echo "pre-commit: the work tree is not what is staged (git status): make verify checks the work tree."
+  echo "pre-commit: stage the rest, or stash it (git stash push --keep-index --include-untracked), then commit."
+  exit 1
+}
+if [ -n "$QI_DEFINITION_SHELL" ]; then
+  make verify || exit 1
+else
+  command -v nix >/dev/null 2>&1 || {
+    echo "pre-commit: nix is not on PATH, so the project's checks cannot run (make verify)."
+    echo "pre-commit: commit from nix develop, or a shell with nix; git commit --no-verify skips them."
+    exit 1
+  }
+  nix develop -c make verify || exit 1
+fi
+staged || {
+  echo "pre-commit: make verify changed the work tree (git status): stage what it wrote, then commit."
+  exit 1
+}

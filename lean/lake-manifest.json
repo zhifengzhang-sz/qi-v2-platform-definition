@@ -1,0 +1,6 @@
+{"version": "1.3.0",
+ "packagesDir": ".lake/packages",
+ "packages": [],
+ "name": "«qi-v2-platform-definition»",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}
