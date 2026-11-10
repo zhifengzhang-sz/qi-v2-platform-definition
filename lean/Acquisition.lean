@@ -16,10 +16,10 @@ corrections are published as they come, and acquisition applies them to nothing:
 corrected raw series. Nothing published is taken back (a process never takes back output).
 
 The raw series has two parts: first the vendor's corrected raw series, then the vendor's raw series,
-appended to it. The implementation has a reader for each, and switches from the first to the second
-by the reader's own state. That is the implementation's: here the source is one log, what
-acquisition reads in the order it reads it, and the reader is one process of it. That the source
-holds the corrected raw series first is a modelling choice, not a theorem.
+appended to it. The reader reads both parts; how (a replayer in it, say) is the implementation's,
+and so is the switch from the first part to the second. Here the source is one log, what the reader
+reads in the order it reads it, and the reader is one process of it. That the source holds the
+corrected raw series first is a modelling choice, not a theorem.
 
 A reset, which reads the corrected raw series again, is outside the working space: within one,
 nothing starts again.
