@@ -11,3 +11,9 @@
 **What.** The product `qi-v2-platform-definition` 0.1.0, tagged `qi-v2-platform-definition-0.1.0`, so that a project pins the tag over HTTPS with no login.
 
 **Stands.** Done: 0.1.0 is the commit tagged `qi-v2-platform-definition-0.1.0`, which passes `make verify`; its number is in `flake.nix`, `PRODUCTS.md` and `README.md` (Changes). Whether `origin` has the tag yet is in `docs/opening.md`.
+
+## 3. The open parts, exported
+
+**What.** The definition's open parts in a form its users can read: `export/parts.json`, one entry for every field of every structure of `lean/`, made by Lean from the definition and checked by make to be what Lean gives, given in each release from `qi-v2-platform-definition` 0.2.0 on.
+
+**Stands.** Done: `dev/parts.lean` makes it (`make parts`), `make parts-check` checks it at every commit, and the package gives it; 0.2.0 is the commit tagged `qi-v2-platform-definition-0.2.0`. Whether `origin` has the tag yet is in `docs/opening.md`.

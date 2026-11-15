@@ -12,7 +12,7 @@ endif
 PY := python3
 AGENT_KIND ?= all
 
-.PHONY: help install agents agents-check run-start run-check verify locks-check products-check lean
+.PHONY: help install agents agents-check run-start run-check verify locks-check products-check lean parts parts-check
 
 help: ## the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/' | expand -t 22
@@ -50,6 +50,7 @@ verify: ## the checks a commit requires, every one; the pre-commit hook runs it
 	$(MAKE) --no-print-directory products-check
 	$(MAKE) --no-print-directory agents-check
 	$(MAKE) --no-print-directory lean
+	$(MAKE) --no-print-directory parts-check
 
 # kit locks asks each input's source over HTTPS; for a folder input whose repository moved it asks GitHub's compare
 # through gh, and where HTTPS fails it asks again by SSH. Both would act with a credential of the owner's, so it runs
@@ -74,3 +75,27 @@ lean: ## the definitions built and every proof checked by Lake, with the shell's
 	@! grep -q "declaration uses .sorry." .reports/lean.log || { echo "lean: a proof is left as sorry (.reports/lean.log)"; exit 1; }
 	@cd lean && lake env lean ../dev/axioms.lean > ../.reports/axioms.log 2>&1 || { grep -E "AXIOMS|error" ../.reports/axioms.log; echo "lean: the axiom audit failed (.reports/axioms.log)"; exit 1; }
 	@tail -n 1 .reports/axioms.log
+
+# ---------------------------------------------------------------- the open parts (export/parts.json, README.md)
+
+# The product's one number: flake.nix's version (README.md, Changes), which make parts writes into the export.
+VERSION := $(shell sed -n 's/^ *version = "\([^"]*\)";$$/\1/p' flake.nix)
+# The file make parts-check reads: export/parts.json, or another given by PARTS=.
+PARTS ?= export/parts.json
+
+# The export made by Lean into $(1) (dev/parts.lean), from lean/ as built: it stops where lean/ is not built as it
+# stands (make lean), or flake.nix has not one version.
+define parts-into
+	@[ -n "$(VERSION)" ] && [ "$$(printf '%s\n' $(VERSION) | wc -l)" -eq 1 ] || { echo "$@: not one version = \"...\"; in flake.nix"; exit 1; }
+	@cd lean && lake build --no-build -q || { echo "$@: lean/ is not built as it stands: make lean"; exit 1; }
+	@mkdir -p $(dir $(1))
+	@cd lean && PARTS_VERSION=$(VERSION) PARTS_OUT=$(abspath $(1)) lake env lean ../dev/parts.lean
+endef
+
+parts: ## the definition's open parts, export/parts.json, made by Lean from lean/ as built (dev/parts.lean; README.md, The open parts), its version flake.nix's; after make lean
+	$(call parts-into,export/parts.json)
+
+parts-check: ## whether export/parts.json is what Lean gives (made again into .reports/parts.json, compared byte for byte), then its form (dev/parts-check.py); PARTS=<file> checks another file
+	$(call parts-into,.reports/parts.json)
+	@cmp -s .reports/parts.json $(PARTS) || { echo "parts-check: $(PARTS) is not what Lean gives (.reports/parts.json): make parts"; exit 1; }
+	@$(PY) -I dev/parts-check.py $(PARTS) $(VERSION)

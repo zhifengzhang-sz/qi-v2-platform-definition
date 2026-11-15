@@ -1,7 +1,8 @@
 # qi-v2-platform-definition's tools and product, the same on every machine (docs/process.md): `nix develop`, then
 # `make install` and the targets of the Makefile. Everything from outside is an input pinned by flake.lock: qi-v2's
 # one nixpkgs, its pure shell and its Lean; the kit, which writes the agents' files from agents/. The product,
-# qi-v2-platform-definition (README.md), is the package of the same name: the Lake package of lean/, as source.
+# qi-v2-platform-definition (README.md), is the package of the same name: the Lake package of lean/, as source,
+# with the export of its open parts, export/parts.json.
 {
   description = "qi-v2-platform-definition: the platform's formal definition in Lean, on Kahn process networks";
 
@@ -20,9 +21,10 @@
         config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" "github-copilot-cli" ];
       }));
       # The product's one number (README.md, Changes).
-      version = "0.1.0";
+      version = "0.2.0";
     in {
-      # The product: lean/, the Lake package, as source, for a taker's Lake; with README.md and LICENSE.
+      # The product: lean/, the Lake package, as source, for a taker's Lake; with README.md, LICENSE and
+      # export/parts.json, the definition's open parts (make parts).
       packages = forAll (pkgs:
         let
           qi-v2-platform-definition = pkgs.runCommand "qi-v2-platform-definition-${version}" { } ''
@@ -30,6 +32,8 @@
             cp -r ${./lean}/. $out/
             cp ${./README.md} $out/README.md
             cp ${./LICENSE} $out/LICENSE
+            mkdir -p $out/export
+            cp ${./export/parts.json} $out/export/parts.json
           '';
         in {
           inherit qi-v2-platform-definition;

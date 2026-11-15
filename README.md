@@ -24,12 +24,23 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
 ## The product
 
-`qi-v2-platform-definition` is a flake package of `lean/`, the Lake package `qi-v2-platform-definition`, as source, with this file and `LICENSE`, for a taker's Lake, on `x86_64-linux`. In the package the files of `lean/` are at its root, beside this file and `LICENSE`, and nothing else of the repository is there: the other paths this file and the Lean's comments name (`docs/`, `PRODUCTS.md`, `dev/`, the make targets) are the repository's. Its Lean is the one `lean/lean-toolchain` names, 4.35.0-rc3. Its release is 0.1.0, the tag `qi-v2-platform-definition-0.1.0`; a release is a tag `qi-v2-platform-definition-<version>` (Changes, below), read over HTTPS with no login.
+`qi-v2-platform-definition` is a flake package of `lean/`, the Lake package `qi-v2-platform-definition`, as source, with this file, `LICENSE` and `export/parts.json`, the definition's open parts (below), for a taker's Lake, on `x86_64-linux`. In the package the files of `lean/` are at its root, beside this file, `LICENSE` and `export/parts.json`, and nothing else of the repository is there: the other paths this file and the Lean's comments name (`docs/`, `PRODUCTS.md`, `dev/`, the make targets) are the repository's. Its Lean is the one `lean/lean-toolchain` names, 4.35.0-rc3. Its release is 0.2.0, the tag `qi-v2-platform-definition-0.2.0`; a release is a tag `qi-v2-platform-definition-<version>` (Changes, below), read over HTTPS with no login.
+
+## The open parts
+
+`export/parts.json` gives the definition's open parts, so that what each product of the platform must give is read from the definition itself. Lean makes it from the definition, by `dev/parts.lean` (Checking it, below). It is a JSON object: `version`, the release's version, and `parts`, one entry for every field of every structure `lean/` declares, classes among them; a structure's fields are its own, a parent's (`Kahn.Domain.toPoset`) among them. The entries are sorted by name, and each has:
+
+- `name`: the field's full Lean name (`Acquisition.Data.Kline`).
+- `structure`: the structure it is a field of (`Acquisition.Data`).
+- `type`: its type as Lean prints it in its structure, as `#print` shows it: the structure's parameters and `self` free, on one line, a proof printed `⋯`.
+- `doc`: its doc comment, as Lean holds it, or empty.
+- `uses`: the other parts its type refers to, sorted: a projection of a structure of `lean/` is its field; such a structure, or its constructor, is each of its fields; a definition of `lean/` (an abbreviation, an instance, a `match` helper) refers to what it comes to, unfolded where it is used, its value applied to the arguments it is given; a theorem or a constant from outside `lean/` refers to nothing. Every name in `uses` is the name of an entry.
 
 ## Checking it
 
-In the project's shell (`nix develop`), once: `make install`. Then `make lean` builds the definitions, checks every proof, and checks that no constant of `lean/` rests on an axiom other than Lean's three (`dev/axioms.lean`), and `make verify` runs every check a commit requires. `make help` lists the targets.
+In the project's shell (`nix develop`), once: `make install`. Then `make lean` builds the definitions, checks every proof, and checks that no constant of `lean/` rests on an axiom other than Lean's three (`dev/axioms.lean`), and `make verify` runs every check a commit requires. `make parts` makes `export/parts.json` from `lean/` as built, and `make parts-check`, which `make verify` runs, checks that the file is what Lean gives and that it holds to its form (`dev/parts-check.py`). `make help` lists the targets.
 
 ## Changes
 
+- **0.2.0**: the definition's open parts, `export/parts.json` (The open parts), made by Lean from the definition and given in the package; the definition is 0.1.0's.
 - **0.1.0**: the first release. The base (Kahn process networks: domains, processes, networks, logs, sets of rows), Kafka's topic, the four components (acquisition, warehousing, visualization, the market model engine) and their wiring; 51 theorems, each proved on Lean's standard axioms only; Lean 4.35.0-rc3.

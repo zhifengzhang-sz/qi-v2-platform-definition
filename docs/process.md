@@ -9,10 +9,10 @@ Nix with flakes; GitHub's access for a push (an SSH key on the account). Then th
 | Kind | Where | In git | Made by |
 |---|---|---|---|
 | the work | `lean/` (the definitions and their proofs) | yes | the sessions |
-| the product, `qi-v2-platform-definition` | `flake.nix`'s package, `README.md` (with its Changes), `LICENSE` | yes | the sessions, a release by its tag |
+| the product, `qi-v2-platform-definition` | `flake.nix`'s package, `README.md` (with its Changes), `LICENSE`, `export/parts.json` (the definition's open parts) | yes | the sessions, a release by its tag; `export/parts.json` by `make parts` |
 | the Lake package | `lean/lakefile.toml`, `lean/lake-manifest.json`, `lean/lean-toolchain` | yes | the sessions |
 | what it owns, gives and takes | `PRODUCTS.md` | yes | the sessions, in the commit of the change it describes |
-| the project's machinery | `flake.nix`, `flake.lock`, `Makefile`, `dev/hooks/`, `dev/no-credential/`, `dev/axioms.lean` (the axiom audit `make lean` runs), `.envrc` | yes | the sessions |
+| the project's machinery | `flake.nix`, `flake.lock`, `Makefile`, `dev/hooks/`, `dev/no-credential/`, `dev/axioms.lean` (the axiom audit `make lean` runs), `dev/parts.lean` (the export `make parts` makes), `dev/parts-check.py` (the form `make parts-check` checks), `.envrc` | yes | the sessions |
 | the state of the work | `docs/opening.md`, `docs/milestones.md`, `docs/decisions.md`, `docs/designs/` (none yet) | yes | each session, at its end |
 | what a definition means, in words | `docs/acquisition.md` | yes | the sessions, with the definition it explains |
 | the rules for agents, their source | `agents/` | yes | the sessions, the owner approving |
@@ -33,5 +33,5 @@ Nix with flakes; GitHub's access for a push (an SSH key on the account). Then th
 ## A session
 
 1. **Start.** `git fetch https://github.com/zhifengzhang-sz/qi-v2-platform-definition main:refs/remotes/origin/main`, then `git merge --ff-only origin/main` (over HTTPS, `origin/main` kept: the SSH key is for a push only); `nix develop`; after a change of `flake.lock` or `agents/`, `make install`. Then `make locks-check`: each outdated lock reported to the owner with what updates it, none updated without the owner's say; where it stops for a credential (GitHub's compare, through gh's login), the owner is asked.
-2. **Work.** The opening's one task. Before the first build of the session, the owner is asked. Checks run in the role `checker` (`make lean`, `products-check`, `agents-check`, `verify`). No fallbacks.
+2. **Work.** The opening's one task. Before the first build of the session, the owner is asked. Checks run in the role `checker` (`make lean`, `parts-check`, `products-check`, `agents-check`, `verify`). No fallbacks.
 3. **End.** `docs/opening.md` rewritten for the next session, `docs/milestones.md` brought up to date; committed by explicit paths after the checks pass, and pushed.
