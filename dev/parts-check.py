@@ -3,8 +3,9 @@
 make parts-check runs it on export/parts.json, after comparing the file with what Lean gives:
 python3 -I dev/parts-check.py <file> <version>. It checks that the file is an object of `version` and
 `parts` alone, that `version` is the one given (flake.nix's), that every entry has the five keys and no
-other, each a string but `uses`, a list of strings, that no two entries share a name, and that every
-name in `uses` is the name of an entry. It reads the file with Python's json, and changes nothing.
+other, each a string but `uses`, a list of strings, that the entries are sorted by name and no two
+share one, and that each entry's `uses` is sorted, leaves out its own name, and names entries alone.
+It reads the file with Python's json, and changes nothing.
 """
 
 import json
@@ -34,12 +35,18 @@ def faults(d, version):
         else:
             good.append(e)
     names = [e["name"] for e in good]
+    if names != sorted(names):
+        found.append("the entries are not sorted by name")
     seen = set()
     for n in names:
         if n in seen:
             found.append(f"two entries are named {n}")
         seen.add(n)
     for e in good:
+        if e["uses"] != sorted(e["uses"]):
+            found.append(f"{e['name']}: uses is not sorted")
+        if e["name"] in e["uses"]:
+            found.append(f"{e['name']} uses its own name")
         for u in e["uses"]:
             if u not in seen:
                 found.append(f"{e['name']} uses {u}, which is no entry")
@@ -59,7 +66,7 @@ def main(argv):
     if found:
         return 1
     print(f"parts-check: {path}: version {version}, {len(d['parts'])} entries, each of the five keys, "
-          "no two of one name, every name in uses an entry")
+          "sorted, no two of one name; each uses sorted, of other entries alone")
     return 0
 
 

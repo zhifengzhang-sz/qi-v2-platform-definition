@@ -33,8 +33,8 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 - `name`: the field's full Lean name (`Acquisition.Data.Kline`).
 - `structure`: the structure it is a field of (`Acquisition.Data`).
 - `type`: its type as Lean prints it in its structure, as `#print` shows it: the structure's parameters and `self` free, on one line, a proof printed `⋯`.
-- `doc`: its doc comment, as Lean holds it, or empty.
-- `uses`: the other parts its type refers to, sorted: a projection of a structure of `lean/` is its field; such a structure, or its constructor, is each of its fields; a definition of `lean/` (an abbreviation, an instance, a `match` helper) refers to what it comes to, unfolded where it is used, its value applied to the arguments it is given; a theorem or a constant from outside `lean/` refers to nothing. Every name in `uses` is the name of an entry.
+- `doc`: its doc comment, as Lean holds it with the spaces at its ends trimmed, or empty.
+- `uses`: the other parts its type refers to, sorted: a projection of a structure of `lean/` is its field; such a structure, or its constructor, is each of its fields; a definition of `lean/` (an abbreviation, an instance, a `match` helper) refers to what it comes to, unfolded where it is used, its value applied to the arguments it is given; any other constant (a theorem, an inductive type of `lean/` that is not a structure, with its constructors and recursors, or a constant from outside `lean/`) refers to nothing, and the terms it is applied to are read on. Every name in `uses` is the name of an entry.
 
 ## Checking it
 

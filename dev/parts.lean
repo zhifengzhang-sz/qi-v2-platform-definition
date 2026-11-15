@@ -56,11 +56,9 @@ structure State where
   visited : Std.HashSet Expr := {}
   found : NameSet := {}
 
-/-- The parts `e` uses (`README.md`, The open parts): a projection of a structure of `lean/` is its
-field; such a structure, or its constructor, each of its fields; a definition of `lean/` is unfolded
-where it is used, its value applied to the arguments it is given, and what that comes to is visited
-in its place; anything else, a theorem or a constant from outside `lean/`, adds nothing, and its
-arguments are visited. It ends: Lean's kernel takes a definition's value only of constants declared
+/-- The parts `e` uses, by the rule `README.md` gives (The open parts); where a definition of `lean/`
+is unfolded, what it comes to is visited in its place, and elsewhere the arguments of a constant are
+visited. It ends: Lean's kernel takes a definition's value only of constants declared
 before it, so no unfolding comes back to the definition it started from; a value that names its own
 definition fails it. -/
 partial def visit (ours : Name → Bool) (e : Expr) :
