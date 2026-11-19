@@ -5,7 +5,7 @@ The definition has two parts (`docs/decisions.md`, the owner's two decisions of 
 ## What this design guarantees
 
 - Every message of a working space the wiring makes is a contract's record: its input logs and acquisition's topics carry market's `KLine`, the engine's topics chanlun's records, and what leaves the system is the values of the records read. No data type of a component is a parameter; what stays open is which topics and logs a working space has, their names and their partitions.
-- Each component meets its spec, a structure of `Prop`s on its processes, one for each requirement. A component that gives nothing meets no spec: on some input it gives less than its spec asks (a theorem for each component).
+- Each component meets its spec, a structure of `Prop`s on its processes, one for each requirement. A component that gives nothing meets no spec: on some input it gives less than its spec asks, for the engine and the cleaner an input holding a k-line that keeps market's rules (a theorem for each component).
 - Each spec is met by some component (a theorem for each), so no spec contradicts itself or Kahn's condition.
 - Each series acquisition publishes is read back, in order, from one partition, its home, since Kafka keeps order within a partition; each k-line of the raw and the clean series holds besides its place in its series, its `index`.
 - Several working spaces side by side are each one a wiring makes.
@@ -124,7 +124,9 @@ Not required: that its records are right by 缠论's lessons (how k-lines merge,
 
 **Features.** A pure consumer, writing no topic. Without the engine, the chart is drawn from the clean topics alone (`Wiring.chart_without_engine`). The chart on the page at any moment is the set of what its logs hold so far (`Rows.ofLogs`), each record placed by its own positions: a k-line by its `index` and `date`, a chanlun record by its positions and bars. Which record still going on it draws over which is the page's.
 
-**Requirements** (`Visualization.Spec`): `chart`: for each partition of each topic it reads, its log is the values of that partition's records that have one, in order. It gives one log for each partition it reads: one log of several topics' records would merge by arrival (`Kahn.no_arrival_merge`), so no process with one log shows every record it reads. In a working space it shows the clean series' home topic, a field of the wiring.
+**Requirements** (`Visualization.Spec`), for every input:
+- `chart`: for each partition of each topic it reads, its log is the values of that partition's records that have one, in order. It gives one log for each partition it reads: one log of several topics' records would merge by arrival (`Kahn.no_arrival_merge`), so no process with one log shows every record it reads.
+- It reads a clean topic, a field of its data: in a working space, the clean series' home topic among them, a field of the wiring.
 
 ### The working space
 
