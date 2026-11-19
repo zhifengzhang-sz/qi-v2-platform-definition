@@ -1,6 +1,6 @@
 # The contract specs and the component specs
 
-The platform's definition has two parts. The contract specs are the formal definition of each contract the platform uses, market's and chanlun's: its records and its rules. The component specs say what each component must do: its objectives, its features, and its requirements, each requirement a `Prop` its processes meet. This document gives both, and what the working space they make gives. The decisions behind it are in `docs/decisions.md`; how much of it the Lean holds is in `docs/milestones.md`.
+The platform's definition has two parts. The contract specs are the formal definition of each contract the platform uses, market's and chanlun's: its records and its rules. The component specs say what each component must do: its objectives, its features, and its requirements, each requirement a `Prop` its processes meet. This document gives the component specs, what the definition holds of a contract, and what the working space gives. What the Lean holds has its home there, each definition's doc comment its own, and this document points to it. The decisions behind it are in `docs/decisions.md`; how much of it the Lean holds is in `docs/milestones.md`; how an implementation follows each definition, and what is its own, is in `docs/guide/`.
 
 ## What it guarantees
 
@@ -34,35 +34,19 @@ A contract is its records and its rules. A record is a structure, field for fiel
 
 That a record keeps its contract is a structure of `Prop`s, one field for each of its rules, by the rule's name: `KLine.Keeps`, `OngoingKLine.Keeps`, `MergedBar.Keeps`, `Fractal.Keeps`, `Line.Keeps`, `Segment.Keeps`, `Move.Keeps`, `Consolidation.Keeps`. A record keeps it exactly when it breaks none of its rules: `broken rules x = [] ↔ x.Keeps`, a theorem for each record.
 
-The records and the rules are the contract's, in name and meaning as its own Lean states them (`qi-v2-contracts`), and the contract takes them from the definition at a release, by the names it has. Each contract is a module of its own, in its own namespace: `Contract.Market` (`lean/Contract/Market.lean`, namespace `Market`) and `Contract.Chanlun` (`lean/Contract/Chanlun.lean`, namespace `Chanlun`), so that a contract's own module of its name imports the definition's with no clash. They import nothing, and each has its own `Rule` and `broken`.
+The records and the rules were read from the contract's own Lean in name and meaning unchanged; their home is the definition, and the contract takes them from it at a release, by the names they have. Each contract is a module of its own, in its own namespace: `Contract.Market` (`lean/Contract/Market.lean`, namespace `Market`) and `Contract.Chanlun` (`lean/Contract/Chanlun.lean`, namespace `Chanlun`), so that a contract's own module of its name imports the definition's with no clash. They import nothing, and each has its own `Rule` and `broken`.
 
 A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire, which the contract's reader refuses. That bound is held by the contract's reader alone, not by the records. That no field of a record the platform writes passes it is a modelling choice, not a theorem: a series' `index` reaches 2⁶⁴ only after 2⁶⁴ k-lines.
 
-`broken` and each rule's decision are computable, so that the contracts' program that checks their examples evaluates them. The contracts' own, not the definition's: the `.proto`, the wire's form; the reader of Protobuf's JSON (`ProtoJson`, the `FromJson` instances), code to run; the examples and the program that checks them against the rules; Go and TypeScript. On the wire a record crosses as Protobuf, read and written by code generated from the `.proto` with a standard library, and a message is its shape alone: the rules are applied within the workers that use them, which is what the component specs say.
+`broken` and each rule's decision are computable, so that the contracts' program that checks their examples evaluates them. What an implementation of a contract must give, and what is its own: `docs/guide/market.md`, `docs/guide/chanlun.md`. On the wire a record crosses as Protobuf, read and written by code generated from the `.proto` with a standard library, and a message is its shape alone: the rules are applied within the workers that use them, which is what the component specs say.
 
 ### Market
 
-The K-line and the ongoing K-line, of whatever source gives them. A time is milliseconds since 1970-01-01 00:00:00 UTC (`date`, `asOf`); a position is a K-line's place in its series, from 0 (`index`); a price or a volume is a number, which needs no more than 6 decimal places, more not refused.
-
-| Record | Fields | Rules |
-|---|---|---|
-| `KLine`, a complete bar | `index` : `Nat`, a position; `date` : `Nat`, a time; `open`, `high`, `low`, `close` : `Float`, prices; `volume` : `Float` | `finite`: every price and the volume a finite number; `range`: `low ≤ open`, `low ≤ close`, `open ≤ high`, `close ≤ high`; `volumeNotNegative`: `0 ≤ volume` |
-| `OngoingKLine`, a bar still going on | `KLine`'s, and `asOf` : `Nat`, the time its values were last updated | its K-line's three, on `OngoingKLine.kline`, its fields as a K-line's; `asOfNotBeforeDate`: `date ≤ asOf` |
+The K-line and the ongoing K-line, of whatever source gives them: `Market.KLine`, a complete bar, and `Market.OngoingKLine`, a bar still going on, each with its rules and its `Keeps`, in `lean/Contract/Market.lean`, where each field's doc comment says what it is and in what unit.
 
 ### Chanlun
 
-The records the algorithm of 缠论 makes beyond the K-line, of whatever implementation makes them. The contract says what a value is, not whether it is right by the lessons, and not how records are gathered: a run of them, their order, and which is still going on are their user's. A position is a K-line's place in its series, market's `KLine.index`; a bar is a merged bar's number, its `mIndex`, from 0; a price is as market's; a level is from 0. A `confirmEnd` not set means the record is still going on; one set is after the record's `end`.
-
-| Record | Fields | Rules |
-|---|---|---|
-| `MergedBar`, 包含's merged bar | `mIndex` : `Nat`, a bar; `up` : `Bool`; `start`, `end` : `Nat`, `confirmEnd` : `Option Nat`, `extremes` : `List Nat`, `index` : `Nat`, positions; `high`, `low` : `Float`, prices | `finite`: its high and its low finite; `range`: `low ≤ high`; `extremesWithin`: each extreme from `start` to `end`; `extremesAscending`: its extremes ascending, none twice; `indexInExtremes`: `index` one of its extremes; `endBeforeConfirmEnd`: `end < confirmEnd` when it is set |
-| `Fractal`, 分型 | `mIndex` : `Nat`, a bar | none |
-| `Line`, a 笔 | `start`, `end` : `Nat`, `confirmEnd` : `Option Nat`, bars | `startBeforeEnd`: `start < end`; `endBeforeConfirmEnd` |
-| `Segment`, 线段 of a level | `Line`'s, and `level` : `Nat` | `startBeforeEnd`; `endBeforeConfirmEnd` |
-| `Move`, 走势 of a level | `Line`'s, and `level` : `Nat` | `startBeforeEnd`; `endBeforeConfirmEnd` |
-| `Consolidation`, 中枢 of a level | `level` : `Nat`; `start`, `end` : `Nat`, `confirmEnd` : `Option Nat`, bars; `zg`, `zd`, `gg`, `dd` : `Float`, prices: its band from ZD to ZG within its range from DD to GG | `finite`: its four prices finite; `startBeforeEnd`; `bands`: `dd ≤ zd ≤ zg ≤ gg`; `endBeforeConfirmEnd` |
-
-A merged bar's `start` not after its `end` is no rule: it is a theorem, `MergedBar.startNotAfterEnd`, from `indexInExtremes` and `extremesWithin`.
+The records the algorithm of 缠论 makes beyond the K-line: `Chanlun.MergedBar` (包含's merged bar), `Chanlun.Fractal` (分型), `Chanlun.Line` (笔), `Chanlun.Segment` (线段), `Chanlun.Move` (走势) and `Chanlun.Consolidation` (中枢), each with its rules and its `Keeps`, in `lean/Contract/Chanlun.lean`, whose comment says what the contract says of a value and what it leaves to the records' user.
 
 ## The data
 

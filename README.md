@@ -22,7 +22,7 @@ The platform's formal definition in Lean 4, on Kahn process networks (Kahn, 1974
 | `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; a table of the database the rows pushed into it, in no order |
 | `lean/Wiring.lean` | the components as one working space, of one series, the engine optional: each topic named by the naming from the series' signature and its kind, no two of one name; every message a contract's record or made of them; what the whole system comes to; several working spaces side by side, each one a wiring makes, of one naming, no two of one signature |
 
-The decisions behind the definitions, and those still open: `docs/decisions.md`.
+The decisions behind the definitions: `docs/decisions.md`. How an implementation follows each definition, what it must give and how that is checked: `docs/guide/`.
 
 ## The product
 

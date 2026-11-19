@@ -1,28 +1,21 @@
 /-!
 # Market's contract
 
-The market data contract's formal definition: its records and its rules. The K-line and the ongoing
-K-line, of whatever source gives them. The records are those of the contract's `.proto`, field for
-field; each rule is a name and what holds of a record that keeps it. They are the contract's, in name
-and meaning as the contract's Lean states them (`qi-v2-contracts`). What stays the contract's own:
-the `.proto`, the wire's form; the reader of Protobuf's JSON (`ProtoJson`, the `FromJson`
-instances), code to run; the examples and the program that checks them against the rules; Go and
-TypeScript. So this module imports nothing, where the contract's Lean imports `Lean.Data.Json` for
-its reader alone.
+The market data contract's formal definition: its records, the K-line and the ongoing K-line, of
+whatever source gives them, field for field the messages of the contract's `.proto`; and its rules,
+each a name and what holds of a record that keeps it. This module is their home: they were read from
+the contract's own Lean in name and meaning unchanged, for the contract to take from the definition
+at a release. How an implementation follows them, and what is its own: `docs/guide/market.md`. This
+module imports nothing.
 
-A time is milliseconds since 1970-01-01 00:00:00 UTC: a K-line's `date`, an ongoing K-line's `asOf`.
-A position is a K-line's place in its series, from 0: its `index`. A price or a volume is a number,
-which needs no more than 6 decimal places; more is not refused.
+Each field's doc comment says what it is and in what unit. A price or a volume needs no more than 6
+decimal places; more is not refused. That a record keeps its contract is a structure of `Prop`s, one
+field for each of its rules, by the rule's name (`KLine.Keeps`, …), and a record keeps it exactly when
+it breaks none of its rules (`KLine.keeps_iff`, …, from `broken_eq_nil`).
 
-That a record keeps its contract is a structure of `Prop`s, one field for each of its rules, by the
-rule's name (`KLine.Keeps`, …), and a record keeps it exactly when it breaks none of its rules
-(`KLine.keeps_iff`, …, from `broken_eq_nil`). Each field's doc comment says what it is and in what
-unit, as the contract states it.
-
-A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire,
-which the contract's reader refuses. That bound is held by the reader alone, as in the contract's
-Lean, not by the records here. `broken` and each rule's decision are computable, as the contract
-states them, so that the contract's program that checks its examples evaluates them.
+A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire. That
+bound is held by the contract's reader alone, not by the records here. `broken` and each rule's
+decision are computable, so that the contract's program that checks its examples evaluates them.
 -/
 
 namespace Market

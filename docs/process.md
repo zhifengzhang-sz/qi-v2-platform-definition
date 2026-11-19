@@ -14,7 +14,7 @@ Nix with flakes; GitHub's access for a push (an SSH key on the account). Then th
 | what it owns, gives and takes | `PRODUCTS.md` | yes | the sessions, in the commit of the change it describes |
 | the project's machinery | `flake.nix`, `flake.lock`, `Makefile`, `dev/hooks/`, `dev/no.credential/`, `dev/axioms.lean` (the axiom audit `make lean` runs), `dev/parts.lean` (the export `make parts` makes), `dev/parts.check.py` (the form `make parts-check` checks), `.envrc` | yes | the sessions |
 | the state of the work | `docs/opening.md`, `docs/milestones.md`, `docs/decisions.md`, `docs/designs/` (the designs a later session relies on: `spec.md`) | yes | each session, at its end |
-| what a definition means, in words | `docs/acquisition.md` | yes | the sessions, with the definition it explains |
+| how an implementation follows each definition: what it implements, what it must give, what is its own, how it is checked, how it takes the definition | `docs/guide/` (`market.md`, `chanlun.md`); `docs/acquisition.md`, acquisition's in words, until acquisition's guide takes its place | yes | the sessions, with the definition it guides |
 | the rules for agents, their source | `agents/` | yes | the sessions, the owner approving |
 | the rules for agents, generated | `AGENTS.md`, `CLAUDE.md`, `.claude/agents/`, `.claude/workflows/`, `.github/agents/`, `.github/hooks/kit.json`, `agents.generated`; a run's record, `agents.run/`; the developer's own `agents.local.json` | no | `make agents` and `make run-start`, by the kit |
 | the tools, the kit | `/nix/store`, pinned by `flake.lock`; `dev/agents` | the pins | `nix develop`, `make install` |

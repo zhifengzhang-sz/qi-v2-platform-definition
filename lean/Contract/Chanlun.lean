@@ -1,36 +1,27 @@
 /-!
 # 缠论's contract
 
-The chanlun contract's formal definition: its records and its rules. The records the algorithm of
-缠论 makes beyond the K-line, of whatever implementation makes them: the merged bar (包含), the 分型,
-the line (笔), the 线段, the 走势 and the 中枢. The contract says what a value is, not whether it is
-right by the lessons, and not how records are gathered: a run of them, their order, and which is
-still going on are their user's. The records are those of the contract's `.proto`, field for field;
-each rule is a name and what holds of a record that keeps it. Each rule is of one record alone. They
-are the contract's, in name and meaning as the contract's Lean states them (`qi-v2-contracts`). What
-stays the contract's own: the `.proto`, the wire's form; the reader of Protobuf's JSON (`ProtoJson`,
-the `FromJson` instances), code to run; the examples and the program that checks them against the
-rules; Go and TypeScript. So this module imports nothing, where the contract's Lean imports
-`Lean.Data.Json` for its reader alone.
+The chanlun contract's formal definition: its records, the records the algorithm of 缠论 makes beyond
+the K-line, of whatever implementation makes them, field for field the messages of the contract's
+`.proto`: the merged bar (包含), the 分型, the line (笔), the 线段, the 走势 and the 中枢; and its
+rules, each a name and what holds of a record that keeps it, each of one record alone. The contract
+says what a value is, not whether it is right by the lessons, and not how records are gathered: a run
+of them, their order, and which is still going on are their user's. This module is their home: they
+were read from the contract's own Lean in name and meaning unchanged, for the contract to take from
+the definition at a release. How an implementation follows them, and what is its own:
+`docs/guide/chanlun.md`. This module imports nothing.
 
-A position is a K-line's place in its series, from 0, market's `KLine.index`: a merged bar's
-`index`, `start`, `end`, `confirmEnd` and `extremes`. A bar is a merged bar's number, its `mIndex`,
-from 0: a 分型's `mIndex`, a line's, a 线段's, a 走势's and a 中枢's `start`, `end` and `confirmEnd`.
-A price is a number, which needs no more than 6 decimal places, more not refused: a merged bar's
-`high` and `low`, a 中枢's `zg`, `zd`, `gg` and `dd`. A level is from 0: a 线段's, a 走势's and a
-中枢's `level`. A `confirmEnd` not set means the record is still going on: a merged bar still
-merging, a line not yet ended, a 中枢 under construction; one set is after the record's `end`
-(`endBeforeConfirmEnd`).
+Each field's doc comment says what it is and in what unit. A position is a K-line's place in its
+series, from 0, market's `KLine.index`; a bar is a merged bar's number, its `mIndex`, from 0; a price
+needs no more than 6 decimal places, more not refused; a level is from 0. A `confirmEnd` not set means
+the record is still going on; one set is after the record's `end` (`endBeforeConfirmEnd`). That a
+record keeps its contract is a structure of `Prop`s, one field for each of its rules, by the rule's
+name (`MergedBar.Keeps`, …), and a record keeps it exactly when it breaks none of its rules
+(`MergedBar.keeps_iff`, …, from `broken_eq_nil`).
 
-That a record keeps its contract is a structure of `Prop`s, one field for each of its rules, by the
-rule's name (`MergedBar.Keeps`, …), and a record keeps it exactly when it breaks none of its rules
-(`MergedBar.keeps_iff`, …, from `broken_eq_nil`). Each field's doc comment says what it is and in what
-unit, as the contract states it.
-
-A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire,
-which the contract's reader refuses. That bound is held by the reader alone, as in the contract's
-Lean, not by the records here. `broken` and each rule's decision are computable, as the contract
-states them, so that the contract's program that checks its examples evaluates them.
+A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire. That
+bound is held by the contract's reader alone, not by the records here. `broken` and each rule's
+decision are computable, so that the contract's program that checks its examples evaluates them.
 -/
 
 namespace Chanlun
