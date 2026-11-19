@@ -64,7 +64,7 @@ theorem broken_eq_nil {α : Type} (rules : List (Rule α)) (x : α) :
 structure MergedBar where
   /-- its number: a bar -/
   mIndex : Nat
-  /-- its direction, upward when `true` -/
+  /-- its direction -/
   up : Bool
   /-- its first K-line: a position -/
   start : Nat
@@ -133,13 +133,13 @@ structure Consolidation where
   «end» : Nat
   /-- the merged bar at which it was confirmed: a bar; not set while it is under construction -/
   confirmEnd : Option Nat
-  /-- the top of its band, ZD to ZG: a price -/
+  /-- ZG, of its band, ZD to ZG: a price -/
   zg : Float
-  /-- the bottom of its band: a price -/
+  /-- ZD, of its band: a price -/
   zd : Float
-  /-- the top of its range, DD to GG: a price -/
+  /-- GG, of its range, DD to GG: a price -/
   gg : Float
-  /-- the bottom of its range: a price -/
+  /-- DD, of its range: a price -/
   dd : Float
   deriving Repr
 

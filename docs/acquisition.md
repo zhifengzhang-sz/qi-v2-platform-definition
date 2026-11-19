@@ -187,7 +187,7 @@ $g \circledcirc f$ sends the output of $f$ into $g$; $\mathrm{fst}$ and $\mathrm
 $$\mathrm{run}\,a\,(s, c)\,\kappa = \begin{cases} \mathrm{publishRaw}\,r & \kappa = \mathrm{raw} \\ \mathrm{publishClean}\,(\mathrm{cleaner}\,r) & \kappa = \mathrm{clean} \\ \mathrm{publishCorrections}\,c & \kappa = \mathrm{corrections} \end{cases}$$
 
 ### `theorem raw_topics`, `clean_topics`, `corrections_topics`
-The three lines of that equation, one theorem each: the topics of each kind hold what the publisher's part for that kind makes of its own series alone. So the clean topics are made from the clean series and nothing else. Each proof is `rfl`: the two sides are the same once the definitions are unfolded.
+The three lines of that equation, one theorem each: the topic of each kind holds what the publisher's part for that kind makes of its own series alone. So the clean topic is made from the clean series and nothing else. Each proof is `rfl`: the two sides are the same once the definitions are unfolded.
 
 ### `end`
 Closes the `noncomputable section`.

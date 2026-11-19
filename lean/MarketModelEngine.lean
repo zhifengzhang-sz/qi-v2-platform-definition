@@ -6,11 +6,12 @@ import Contract.Chanlun
 /-!
 # The market model engine
 
-Optional. A worker: it reads one clean topic, of market's `KLine`, its series, and publishes one
-topic of its own, of its results (`Result`), each one of chanlun's records
-(`lean/Contract/Chanlun.lean`). Each topic has one partition and no key (`Kafka.Topic.ofName`), so
-the worker reads one log and writes one log (`Kafka.Partition`): it merges none. How it computes its
-results is the implementation's.
+Optional. It reads one clean topic, of market's `KLine`, its series, and publishes one topic of its
+own, of its results (`Result`), each one of chanlun's records (`lean/Contract/Chanlun.lean`). It is a
+worker, which gives its results, and a publisher, which writes them to its topic. Each topic has one
+partition and no key (`Kafka.Topic.ofName`), so the worker reads one log and the publisher writes one
+log (`Kafka.Partition`): neither merges any. How the worker computes its results is the
+implementation's.
 -/
 
 noncomputable section
@@ -45,7 +46,9 @@ def MarketModelEngine.Result.Keeps : MarketModelEngine.Result → Prop
 
 /-- The market model engine. -/
 structure MarketModelEngine where
-  /-- the worker: reads the clean topic's one partition, its series, and writes its own topic's -/
-  worker : Process (Kafka.Partition Market.KLine) (Kafka.Partition MarketModelEngine.Result)
+  /-- the worker: reads the clean topic's one partition, its series, and gives its results -/
+  worker : Process (Kafka.Partition Market.KLine) (Log MarketModelEngine.Result)
+  /-- the publisher: writes the worker's results to its own topic's one partition -/
+  publisher : Process (Log MarketModelEngine.Result) (Kafka.Partition MarketModelEngine.Result)
 
 end

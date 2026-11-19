@@ -88,7 +88,7 @@ Market's `OngoingKLine` is held with its contract and carried by no topic: acqui
 
 Beside its components, each a process that meets its spec, a working space chooses its series' signature, the naming, one for every working space side by side, the table each of acquisition's topics is pushed into, and whether the engine is there. Every type of a working space, and each topic's name, partition, key and value, follow from these.
 
-Kafka's topic has one shape for every topic, its key and value types and its number of partitions any (`Kafka.Topic`), and the general working space its input and output messages any (`Workspace`): what is fixed is every topic and every working space a wiring makes.
+Kafka's topic has one shape for every topic, its key and value types and its number of partitions any (`Kafka.Topic`); warehousing reads topics of any schema, as its consumer is one for each (`Warehousing.Data`), which the wiring fills with acquisition's three; and the general working space has its input and output messages any (`Workspace`): what is fixed is every topic and every working space a wiring makes.
 
 ### The topics
 

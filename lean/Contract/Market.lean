@@ -78,13 +78,13 @@ structure OngoingKLine where
   date : Nat
   /-- its open: a price -/
   «open» : Float
-  /-- its high so far: a price -/
+  /-- its high: a price -/
   high : Float
-  /-- its low so far: a price -/
+  /-- its low: a price -/
   low : Float
-  /-- its close so far: a price -/
+  /-- its close: a price -/
   close : Float
-  /-- its volume so far -/
+  /-- its volume -/
   volume : Float
   /-- when its values were last updated: milliseconds since 1970-01-01 00:00:00 UTC -/
   asOf : Nat

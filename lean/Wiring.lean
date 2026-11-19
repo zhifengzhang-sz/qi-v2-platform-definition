@@ -93,6 +93,8 @@ theorem engineOut_eq : ∀ (o : Option MarketModelEngine) (t t' : engineOut o), 
   | none, t, _ => nomatch t
   | some _, (), () => rfl
 
+instance (o : Option MarketModelEngine) : Subsingleton (engineOut o) := ⟨engineOut_eq o⟩
+
 /-- Nothing to write: a family over no index. -/
 def nothing {α ι : Type} [Domain α] {κ : ι → Type} [∀ i, Domain (κ i)] (h : ι → Empty) :
     Process α (∀ i, κ i) :=
@@ -220,12 +222,12 @@ def cleanPart : Process S.AcqTopics (Kafka.Partition Market.KLine) :=
     Process.proj (κ := fun κ => (acqTopic N S.signature κ).Logs) .clean
 
 /-- What the engine writes, from acquisition's topics: nothing without the engine, and with it what
-its worker writes from the clean topic. -/
+its publisher writes of the results its worker gives from the clean topic. -/
 def engineRun :
     (o : Option MarketModelEngine) →
       Process S.AcqTopics (engineOut o → (engineTopic N S.signature).Logs)
   | none => nothing id
-  | some e => Process.pi fun _ => Process.pi fun _ => e.worker ⊚ S.cleanPart
+  | some e => Process.pi fun _ => Process.pi fun _ => e.publisher ⊚ e.worker ⊚ S.cleanPart
 
 /-- What visualization reads: the clean topic's one partition, and the engine's topic's. -/
 def visualizationIn : Process S.Topics (Visualization.In (engineOut S.engine)) :=
@@ -282,7 +284,8 @@ theorem clean_topics (i : Inputs) :
   rfl
 
 /-- The engine's topic holds what the engine writes from acquisition's topics: nothing without the
-engine, and with it what its worker writes from the clean topic. -/
+engine, and with it what its publisher writes of the results its worker gives from the clean
+topic. -/
 theorem engine_topics (i : Inputs) :
     S.workspace.topics i .marketModelEngine = S.engineRun S.engine (S.acquisitions i) := by
   rw [← S.workspace.topics_eq i .marketModelEngine]

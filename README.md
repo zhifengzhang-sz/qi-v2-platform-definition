@@ -18,7 +18,7 @@ The platform's formal definition in Lean 4, on Kahn process networks (Kahn, 1974
 | `lean/Acquisition.lean` | acquisition, of market's k-line: its reader, cleaner and publisher, and the three kinds of data it publishes, each on a topic of its own: the raw series (the vendor's corrected raw series, then its raw series), the clean series made from it, and the vendor's corrections; nothing published is taken back; a series' signature (`docs/acquisition.md` explains it) |
 | `lean/Warehousing.lean` | warehousing: the warehouse consumer, one for each schema, on every partition, what it pushes for a topic of the type of its values |
 | `lean/Visualization.lean` | visualization: a pure consumer of the clean topic and the engine's, giving one log for each, of the type of its values, from which the chart is drawn |
-| `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on one clean topic, its series, publishing its own, of its results, each one of chanlun's records |
+| `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on one clean topic, its series, giving its results, each one of chanlun's records, and a publisher writing them to its own topic |
 | `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; a table of the database the rows pushed into it, in no order |
 | `lean/Wiring.lean` | the components as one working space, of one series, the engine optional: each topic named by the naming from the series' signature and its kind, no two of one name; every message a contract's record or made of them; what the whole system comes to; several working spaces side by side, each one a wiring makes, of one naming, no two of one signature |
 
@@ -32,8 +32,8 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
 `export/parts.json` gives the definition's open parts, so that what each product of the platform must give is read from the definition itself. Lean makes it from the definition, by `dev/parts.lean` (Checking it, below). It is a JSON object: `version`, the release's version, and `parts`, one entry for every field of every structure `lean/` declares, classes among them; a structure's fields are its own, a parent's (`Kahn.Domain.toPoset`) among them. The entries are sorted by name, and each has:
 
-- `name`: the field's full Lean name (`Acquisition.Data.Topic`).
-- `structure`: the structure it is a field of (`Acquisition.Data`).
+- `name`: the field's full Lean name (`Acquisition.Signature.security`).
+- `structure`: the structure it is a field of (`Acquisition.Signature`).
 - `type`: its type as Lean prints it in its structure, as `#print` shows it: the structure's parameters and `self` free, on one line, a proof printed `⋯`.
 - `doc`: its doc comment, as Lean holds it with the spaces at its ends trimmed, or empty.
 - `uses`: the other parts its type refers to, sorted: a projection of a structure of `lean/` is its field; such a structure, or its constructor, is each of its fields; a definition of `lean/` (an abbreviation, an instance, a `match` helper) refers to what it comes to, unfolded where it is used, its value applied to the arguments it is given; any other constant (a theorem, an inductive type of `lean/` that is not a structure, with its constructors and recursors, or a constant from outside `lean/`) refers to nothing, and the terms it is applied to are read on. Every name in `uses` is the name of an entry.
