@@ -1,14 +1,15 @@
 # The contract specs and the component specs
 
-The definition has two parts (`docs/decisions.md`, the owner's two decisions of 2026-11-19): the contract specs, the formal definition of each contract, its records and its rules; and the component specs, each component's objectives, requirements and features. This design says what the definition holds of each contract, which record fixes each data type the definition left open, what each component must do, and what the design it replaces guaranteed, kept or lost. Its proposals that the owner has not decided are under Open in `docs/decisions.md`. The Lean follows in two steps: first the contract specs, `lean/Contract/Market.lean` and `lean/Contract/Chanlun.lean`, with the components taking their records; then the component specs.
+The definition has two parts (`docs/decisions.md`): the contract specs, the formal definition of each contract, its records and its rules; and the component specs, each component's objectives, requirements and features. This design says what the definition holds of each contract, which record fixes each data type the definition left open, what each component must do, and what the design it replaces guaranteed, kept or lost. What in it is not yet decided is under Open in `docs/decisions.md`. The Lean follows in two steps: first the contract specs, `lean/Contract/Market.lean` and `lean/Contract/Chanlun.lean`, with the components taking their records; then the component specs.
 
 ## What this design guarantees
 
-- Every message of a working space the wiring makes is a contract's record: its input logs and acquisition's topics carry market's `KLine`, the engine's topics chanlun's records, and what leaves the system is the values of the records read. No data type of a component is a parameter; what stays open is which topics and logs a working space has, their names and their partitions.
+- Every message of a working space the wiring makes is a contract's record: its input logs and acquisition's topics carry market's `KLine`, the engine's topics chanlun's records, and what leaves the system is the values of the records read. No data type of a component is a parameter; what stays open is the topics' partitions, the engine's topics, and the form of a topic's name.
+- Acquisition has one topic of each kind, known by its signature: the security, the market, the exchange, the source and the k-line's period, which its name carries, with its kind.
 - Each component meets its spec, a structure of `Prop`s on its processes, one for each requirement. A component that gives nothing meets no spec: on some input it gives less than its spec asks, for the engine and the cleaner an input holding a k-line that keeps market's rules (a theorem for each component).
 - Each spec is met by some component (a theorem for each), so no spec contradicts itself or Kahn's condition.
-- Each series acquisition publishes is read back, in order, from one partition, its home, since Kafka keeps order within a partition; each k-line of the raw and the clean series holds besides its place in its series, its `index`.
-- Several working spaces side by side are each one a wiring makes.
+- Each series acquisition publishes is read back, in order, from one partition of its topic, its home, since Kafka keeps order within a partition; each k-line of the raw, the clean and the corrections series holds its place in its series as its `index`.
+- Several working spaces side by side are each one a wiring makes, one for each signature.
 - What the replaced design guaranteed is kept, but for what is listed under What is lost (both below).
 
 ## The contract specs
@@ -57,7 +58,7 @@ Of the 87 parts of the export at 0.2.0, 23 are types (`Type`, or a family of the
 |---|---|---|
 | `Acquisition.Data.Kline` | market's `KLine` | the field goes: the raw, corrected raw and clean k-lines are `Market.KLine` |
 | `Acquisition.Data.Source` | market's `KLine` (Open) | the field goes: the source is a log of k-lines, the vendor's corrected raw series, then its raw series |
-| `Acquisition.Data.Correction` | market's `KLine` (Open) | the field goes: a correction is the bar as corrected, known by its `date` |
+| `Acquisition.Data.Correction` | market's `KLine` (Open) | the field goes: a correction is the bar as corrected, known by its `date`, and numbered by its place among the corrections |
 | `Kafka.Topic.Key` | no contract: `Empty` (Open) | each topic of a working space is made with no key |
 | `Kafka.Topic.Value` | the topic's kind | each topic of a working space is made with its kind's record: acquisition's topics `KLine`, each of the engine's one of chanlun's six records (`MarketModelEngine.Kind`) |
 | `Warehousing.Data.Push` | the topic's value (Open) | the field goes: what is pushed for a record is its value |
@@ -69,30 +70,36 @@ Of the 87 parts of the export at 0.2.0, 23 are types (`Type`, or a family of the
 
 `Kafka.Topic.Key` and `Kafka.Topic.Value` stay fields of Kafka's topic, which is the same shape for every topic; what is fixed is every topic a working space has, which is made from its name and its partitions, with no key and its kind's value. `Workspace.InputMsg` and `Workspace.OutputMsg` stay fields of the general working space, over which the wiring builds; every working space the wiring makes has them fixed, and so does every working space of `Workspaces`, which holds wirings.
 
-The other twelve say which topics and logs a working space has, and stay open, as a topic's name and its partitions do: `Acquisition.Data.Topic`, `MarketModelEngine.Data.In`, `MarketModelEngine.Data.Out`, `Visualization.Data.Clean`, `Visualization.Data.Model`, `Warehousing.Data.Topic`, `Wiring.Engine.Clean`, `Wiring.Engine.Out`, `Wiring.Shown`, `Workspace.Input`, `Workspace.Output`, `Workspace.Topic`. `MarketModelEngine.Data.Out` is which topics the engine writes; their messages are those topics' values.
+The other twelve say which topics and logs a working space has. Acquisition's one topic of each kind fixes three: `Acquisition.Data.Topic` (the field goes: each kind has one topic, `Acquisition.Data.topic : Kind → Kafka.Topic`), `Wiring.Engine.Clean` and `Wiring.Shown` (the fields go: the engine and visualization read acquisition's one clean topic). The other nine stay open, as a topic's partitions do: `MarketModelEngine.Data.In`, `MarketModelEngine.Data.Out`, `Visualization.Data.Clean`, `Visualization.Data.Model` and `Warehousing.Data.Topic`, a component's own data, which the wiring fills; `Wiring.Engine.Out`, the engine's topics; `Workspace.Input`, `Workspace.Output` and `Workspace.Topic`, the general working space's. `MarketModelEngine.Data.Out` is which topics the engine writes; their messages are those topics' values.
+
+### The topics
+
+Acquisition has one topic of each kind, raw, clean and corrections. A topic is known by its signature: the security (its ticker), the market (a symbol), the exchange (a symbol), the source (an id: Massive, say, is a source) and the k-line's period (1-minute or daily bars, say); the topic's name carries them all, and its kind, as no two topics have one name. Some tickers already carry the exchange. So a working space, with its one acquisition, is one series, of one signature, and the working spaces side by side are one for each signature. In the Lean (Open): the signature is `Acquisition.Signature`, its five fields strings, the exchange held even where the ticker carries it, a field of acquisition's data; each topic's name is the wiring's naming of the signature and the kind, a function that loses neither, so that no two of acquisition's topics have one name (`Wiring.acq_names` a theorem); the engine's topics are named alike, from the signature and the record each carries.
 
 Market's `OngoingKLine` is held with its contract and carried by no topic: acquisition's three kinds carry complete k-lines (Open).
 
 ## The component specs
 
-Each component's spec is a structure of `Prop`s on the component (`Acquisition.Spec`, `Warehousing.Spec`, `MarketModelEngine.Spec`, `Visualization.Spec`), one field for each requirement, its doc comment saying what the requirement asks. Its objectives and features are the doc comments of the component's file and structure. An input of a process is what has been read so far, so a requirement on every input says what is given at every moment: no output waits for more input than the requirement names. The requirements below are the session's proposal (Open).
+Each component's spec is a structure of `Prop`s on the component (`Acquisition.Spec`, `Warehousing.Spec`, `MarketModelEngine.Spec`, `Visualization.Spec`), one field for each requirement, its doc comment saying what the requirement asks. Its objectives and features are the doc comments of the component's file and structure. An input of a process is what has been read so far, so a requirement on every input says what is given at every moment: no output waits for more input than the requirement names. The requirements below are under Open.
 
 ### Acquisition
 
-**Objectives.** Give the working space its k-lines on Kafka: the vendor's series, raw and clean, and the vendor's corrections, each kind on topics of its own.
+**Objectives.** Give the working space its k-lines on Kafka: the vendor's series, raw and clean, and the vendor's corrections, each kind on a topic of its own, known by the series' signature.
 
-**Features.** The raw series in two parts, the vendor's corrected raw series and then its raw series, read as one source; how the reader reads both (a replayer in it, say) and when it switches is the reader's. Cleaning in acquisition, not in warehousing. The corrections published as they come and applied to nothing, so that the raw and clean topics do not depend on them (`Acquisition.clean_topics`). One acquisition to a working space, several working spaces side by side (`Workspaces`). Each kind's series goes, whole and in order, to one partition of one of its topics, its home, which the working space chooses.
+**Features.** The raw series in two parts, the vendor's corrected raw series and then its raw series, read as one source; how the reader reads both (a replayer in it, say) and when it switches is the reader's. Cleaning in acquisition, not in warehousing. The corrections published as they come and applied to nothing, so that the raw and clean topics do not depend on them (`Acquisition.clean_topics`). One acquisition to a working space, of one signature, and several working spaces side by side, one for each signature (`Workspaces`). Each kind's series goes, whole and in order, to one partition of its topic, its home, which acquisition's data names: where a series goes is acquisition's, as its readers must know it to read the series back.
 
 **Requirements** (`Acquisition.Spec`), for every input:
-- `reader`: the raw series is the source's k-lines, in its order, each with its place in the series as its `index`: position `n` of the raw series holds the source's k-line at `n`, with `index` `n`.
+- `reader`: the raw series is the source's k-lines, in its order, each with its place in the series as its `index`: position `n` of the raw series holds the source's k-line at `n`, with `index` `n`. The `index` a k-line has in an input log is not read: the reader, and the publisher of the corrections, number each k-line by its place.
 - `cleaner`: the clean series is `Acquisition.clean` of the raw series: in order, each raw k-line that breaks none of `KLine`'s rules (`Market.broken Market.KLine.rules k = []`) and whose `date` is after the date of every k-line kept before it, each with its place in the clean series as its `index`; its prices and its volume are as read, never repaired. So a k-line whose date is past those of the k-lines after it, one far in the future say, is kept, and the k-lines after it are dropped until one's date passes it.
-- `publishRaw`, `publishClean`: the kind's home holds the series, in order, each record with its k-line as its value; every other partition of every topic of the kind holds nothing.
-- `publishCorrections`: the same, of the corrections, as they come.
-- Each kind has its home, one of its topics and one partition of it: a field of acquisition's data.
+- `publishRaw`, `publishClean`: the kind's home holds the series, in order, each record with its k-line as its value; every other partition of the kind's topic holds nothing.
+- `publishCorrections`: the corrections' home holds the corrections, in order, as they come, each record's value its correction with its place among the corrections as its `index`; every other partition of the topic holds nothing.
+- Each kind has its home, one partition of its one topic: a field of acquisition's data.
 
 ### Reading a series back from its topics
 
-A kind's series is the values of its home, in order: Kafka keeps order within a partition, and the publisher writes the whole series there and nothing elsewhere. Each k-line of the raw and the clean series holds besides its place in its series, its `index` (market's position), so whatever reads the series finds at each position `n` the k-line of index `n`. The decision that left this condition found that a series spread over several partitions would need its order written into its records (`docs/decisions.md`, overturned 2026-11-19); here the series goes to one partition, whose order Kafka keeps. Spread over several, it would be read in order by no process: which partition holds its next k-line is known only as the records arrive (`Kahn.no_arrival_merge`), and the engine's requirements, which are of one log, would be met by none (The market model engine, below).
+A kind's series is the values of its home, in order: Kafka keeps order within a partition, and the publisher writes the whole series there and nothing elsewhere. Each k-line of the raw, the clean and the corrections series holds its place in its series as its `index` (market's position), so whatever reads the series finds at each position `n` the k-line of index `n`; a correction is known by its `date`, the bar it corrects being the one of that date.
+
+One partition is a choice, not a necessity. The decision that left this condition (`docs/decisions.md`) found that a series spread over several partitions would need its order written into its records; each k-line now holds it, its `index`. So a series spread over its topic's partitions by its `index`, the k-line of index `n` in partition `n mod P` say, is still read back in order, by a process: it gives position `n` once, for each `m ≤ n`, it has read the first k-line of index `m` in partition `m mod P`. `Kahn.no_arrival_merge` does not forbid it: that theorem is of a merge that passes a message on while nothing has come from the other log, and this process passes on no k-line before those of lower index. What no process does is read in order every series whose k-lines are placed by no rule its reader knows: which partition holds the next one is then known only as the records arrive. One partition is the proposal (Open): no reader merges, and Kafka's order within the partition is the series' order. The other way is the placement by index, each reader of the series taking it back by index.
 
 ### Warehousing
 
@@ -106,7 +113,7 @@ A kind's series is the values of its home, in order: Kafka keeps order within a 
 
 **Objectives.** Give 缠论's records of the clean series on topics of its own, for visualization.
 
-**Features.** Optional. It reads clean topics, and takes its series from one partition of them, which its data names: in a working space, the clean series' home. Each of its topics carries one of chanlun's six records (`MarketModelEngine.Kind`, the topic's kind). How it computes its records and when it writes again a record still going on are its own.
+**Features.** Optional. It reads clean topics, and takes its series from one partition of them, which its data names: in a working space, acquisition's one clean topic, its series the clean home. Each of its topics carries one of chanlun's six records (`MarketModelEngine.Kind`, the topic's kind), one topic at the most for each, named from the series' signature and its record (Open). How it computes its records and when it writes again a record still going on are its own.
 
 **Requirements** (`MarketModelEngine.Spec`), for every input, its series being the values of the partition its data names:
 - `records`: every record it writes has a value, which keeps every rule of its record (`Chanlun.broken (its rules) r = []`).
@@ -114,7 +121,7 @@ A kind's series is the values of its home, in order: Kafka keeps order within a 
 - `covers`: each k-line of its series it has read that keeps market's rules is, by its `index`, from the `start` to the `end` of a merged bar it has written: one still merging, its `confirmEnd` not set, at the least, so that no k-line waits for a later one.
 - Its data names its series' partition, and a topic of merged bars.
 
-Its series is one log. Read from several partitions, `covers` and `refers` together would be met by no process when the engine has one partition of merged bars: with one partition read holding a k-line of index 0 and another a k-line of index 1, each alone asks for a merged bar at the first place of that partition, naming its own k-line alone, and with both read the two must be one record.
+Its series is one log, the partition its data names, and its requirements are of that log. With a series spread over partitions by its `index` (Reading a series back from its topics), they would be of the log taken back by index; with one partition, Kafka's log is the series.
 
 Not required: that its records are right by 缠论's lessons (how k-lines merge, where a 分型 is), which no contract states.
 
@@ -122,61 +129,64 @@ Not required: that its records are right by 缠论's lessons (how k-lines merge,
 
 **Objectives.** Show the clean series, and the engine's records when the engine is there, as a chart in an HTML page.
 
-**Features.** A pure consumer, writing no topic. Without the engine, the chart is drawn from the clean topics alone (`Wiring.chart_without_engine`). The chart on the page at any moment is the set of what its logs hold so far (`Rows.ofLogs`), each record placed by its own positions: a k-line by its `index` and `date`, a chanlun record by its positions and bars. Which record still going on it draws over which is the page's.
+**Features.** A pure consumer, writing no topic. Without the engine, the chart is drawn from the clean topic alone (`Wiring.chart_without_engine`). The chart on the page at any moment is the set of what its logs hold so far (`Rows.ofLogs`), each record placed by its own positions: a k-line by its `index` and `date`, a chanlun record by its positions and bars. Which record still going on it draws over which is the page's.
 
 **Requirements** (`Visualization.Spec`), for every input:
 - `chart`: for each partition of each topic it reads, its log is the values of that partition's records that have one, in order. It gives one log for each partition it reads: one log of several topics' records would merge by arrival (`Kahn.no_arrival_merge`), so no process with one log shows every record it reads.
-- It reads a clean topic, a field of its data: in a working space, the clean series' home topic among them, a field of the wiring.
+- It reads a clean topic, a field of its data: in a working space, acquisition's one clean topic.
 
 ### The working space
 
-`Wiring` holds each component's spec beside the component, and joins them: the engine's series is acquisition's clean home, and visualization shows the clean home's topic. `Workspaces` holds wirings, each working space side by side one a wiring makes. The wiring's theorems then state what the system gives:
+`Wiring` holds each component's spec beside the component, and joins them: the engine and visualization read acquisition's one clean topic, the engine's series its home. `Workspaces` holds wirings, each working space side by side one a wiring makes, of its own signature. The wiring's theorems then state what the system gives:
 - the clean home holds the clean series: k-lines that keep market's rules, their dates ascending, each one's `index` its position;
-- the table a kind's home topic is pushed into holds, from its home, exactly the kind's series' k-lines, and from the kind's other partitions nothing;
+- the table a kind's topic is pushed into holds, from its home, exactly the kind's series' k-lines, and from the topic's other partitions nothing;
 - the engine's topics hold records that keep their rules, name only k-lines of the clean series and merged bars it has written, and cover each k-line of the clean series;
-- the chart shows exactly the records of the partitions it reads, the clean series among them; without the engine, of the clean topics alone.
+- the chart shows exactly the records of the partitions it reads, the clean series among them; without the engine, of the clean topic alone.
 
 Two theorems for each component besides: one that gives nothing (`Process.const`, at the least output) meets no spec, on some input; and some component meets its spec. In the pinned Lean, `Float`'s order and `isFinite` are defined through its logical model, `Float.Model`, a subtype of `UInt64`, and the core library states no law of them. So a requirement applies a rule on floats as it is, and a proof that a record keeps such a rule takes it from a record the rule was given of, never from a law: the merged bar the engine that meets its spec writes for a k-line takes its low and its high from a pair of the k-line's prices that its `range` orders. Where a theorem needs a k-line that keeps market's rules (that the engine or the cleaner that gives nothing meets no spec), it is stated for any such k-line, and a concrete one is shown to keep the rules by evaluation (`decide`) where the kernel evaluates the model.
 
-The theorems of `lean/` on the components are kept, each restated with the new types: `Acquisition.raw_topics`, `clean_topics`, `corrections_topics`; `Warehousing.run_apply`; `Wiring.acquisition_topics`, `clean_topics`, `engine_topics`, `warehousing_pushes`, `table_rows`; `Workspaces.system_apply`, of wirings. `Wiring.visualization_chart` and `Wiring.chart_without_engine` are stated of visualization's logs. The base's theorems (`lean/Kahn/`, `Kafka.compaction_not_process`) and the general working space's (`Workspace.system_apply`, `topics_eq`, `topics_least`, `acquisition_topics`, `has_tableRows`) are unchanged.
+The theorems of `lean/` on the components are kept, each restated with the new types: `Acquisition.raw_topics`, `clean_topics`, `corrections_topics`; `Warehousing.run_apply`; `Wiring.engineTopic_names`, `names_distinct`, `acquisition_topics`, `clean_topics`, `engine_topics`, `warehousing_pushes`, `table_rows`; `Workspaces.system_apply`, of wirings. `Wiring.visualization_chart` and `Wiring.chart_without_engine` are stated of visualization's logs. The base's theorems (`lean/Kahn/`, `Kafka.compaction_not_process`) and the general working space's (`Workspace.system_apply`, `topics_eq`, `topics_least`, `acquisition_topics`, `has_tableRows`) are unchanged.
 
 ## What the replaced design guaranteed, and how each is kept
 
 | Guarantee | Its source | How it is kept |
 |---|---|---|
-| Every part is a Kahn process: more input never takes back output, and no output waits for the end of the input | `lean/Kahn/Process.lean`; `docs/decisions.md`, 2026-11-10 | every part keeps its `Process` type; a spec is a `Prop` beside it, and what the specs define (`Acquisition.clean`, `Log.filterMap`, the numbering of a series) are processes |
+| Every part is a Kahn process: more input never takes back output, and no output waits for the end of the input | `lean/Kahn/Process.lean`; `docs/decisions.md`, on Kahn process networks | every part keeps its `Process` type; a spec is a `Prop` beside it, and what the specs define (`Acquisition.clean`, `Log.filterMap`, the numbering of a series) are processes |
 | The system is one process of the input logs, the topics the least solution of its equations | `Workspace.system`, `Workspace.topics_eq`, `Workspace.topics_least` | unchanged: the specs hold the components, not the network |
-| Acquisition alone reads the input logs; the others read the topics alone | `Workspace.run`; `docs/decisions.md`, 2026-11-10 | unchanged |
-| The engine and visualization read clean topics only, by type | `Wiring.engineData`, `Wiring.visualizationData` | unchanged; the engine's series and visualization's clean home are among them |
+| Acquisition alone reads the input logs; the others read the topics alone | `Workspace.run`; `docs/decisions.md`, on the four components | unchanged |
+| The engine and visualization read clean topics only, by type | `Wiring.engineData`, `Wiring.visualizationData` | unchanged; both read acquisition's one clean topic, the engine's series its home |
 | Only warehousing writes into the database | `Workspace.table` | unchanged |
 | Each kind's topics are made from its own series alone; the raw and clean topics do not depend on the corrections | `Acquisition.raw_topics`, `clean_topics`, `corrections_topics`, `Wiring.clean_topics` | `Acquisition.run` keeps its form, its types the contracts' records; the four theorems restated with them |
 | No merge by arrival | `Kahn.no_arrival_merge` | no requirement asks a process to put several logs into one: a series goes to one partition, the engine reads its series from one, and visualization gives one log for each partition it reads |
-| One partition at a time | `Warehousing.run`; `docs/decisions.md`, 2026-11-10 | the consumer on each partition, as it is |
-| `noncomputable` where the limit of logs needs it; the Lean a definition, not code to run | `docs/decisions.md`, 2026-11-10 | kept: the definition's Lean is checked by its proofs; the contracts' records and rules are computable, as the contracts state them, and the contracts' program that checks their examples evaluates them, which is the contracts' code, not the definition's |
+| One partition at a time | `Warehousing.run`; `docs/decisions.md`, on the clean topics | the consumer on each partition, as it is |
+| `noncomputable` where the limit of logs needs it; the Lean a definition, not code to run | `docs/decisions.md`, on the Lean a definition | kept: the definition's Lean is checked by its proofs; the contracts' records and rules are computable, as the contracts state them, and the contracts' program that checks their examples evaluates them, which is the contracts' code, not the definition's |
 | A topic is its whole log; no view that replaces a record already given is a process | `Kafka.compaction_not_process` | unchanged; no topic has a key, so none is compacted by one |
-| Each topic has one writer, no two topics one name, each table one working space | `Workspace.names_distinct`, `Workspaces` | unchanged; `Workspaces` holds wirings |
+| Each topic has one writer, no two topics one name, each table one working space | `Workspace.names_distinct`, `Wiring.engineTopic_names`, `Wiring.names_distinct`, `Workspaces` | kept: the two theorems restated, acquisition's topics of distinct names by the naming of their signature and kind; `Workspaces` holds wirings |
 | Each working space depends on its own input logs alone | `Workspaces.system_apply` | kept, restated of wirings |
 | A table is a set of rows, each a message marked with its log | `Kahn.Rows`, `Workspace.tableRows` | unchanged; a row's message is a record's value, and as every log into a table is of `KLine`, the mark tells two logs' rows apart |
-| Two topics of one schema have one consumer, given by the schema alone | `docs/decisions.md`, 2026-11-10 | unchanged: the consumer is one for each schema; acquisition's topics all have one, no key and `KLine` |
+| Two topics of one schema have one consumer, given by the schema alone | `docs/decisions.md`, on a topic's schema | unchanged: the consumer is one for each schema; acquisition's topics all have one, no key and `KLine` |
 | The engine is optional; without it the chart is drawn from the clean topics alone | `Wiring.chart_without_engine` | kept, stated of visualization's logs |
 | Every claim is proved, on Lean's three axioms | `dev/axioms.lean`, `make lean` | unchanged: the contracts' one theorem, `MergedBar.startNotAfterEnd`, is by `Nat.le_trans`, and `make lean` audits the moved Lean as every file of `lean/` |
-| The export: one entry for every field of every structure of `lean/` | `dev/parts.lean`; `docs/decisions.md`, 2026-11-12 | unchanged in form: the contracts' records and `Rule`, and each spec's requirements, are entries |
-| What a component does in code is its own project's | `docs/decisions.md`, 2026-11-10 | kept: a spec says what a component gives, not how; how the reader switches, how the engine computes and how the page draws stay the implementation's |
+| The export: one entry for every field of every structure of `lean/` | `dev/parts.lean`; `docs/decisions.md`, on the export | unchanged in form: the contracts' records and `Rule`, and each spec's requirements, are entries |
+| What a component does in code is its own project's | `docs/decisions.md`, on the Lean a definition | kept: a spec says what a component gives, not how; how the reader switches, how the engine computes and how the page draws stay the implementation's |
 
 ## What is lost
 
 - Any process of a part's type is one, one that gives nothing among them: a part is one only when it meets its spec.
 - An acquisition of any k-line contract: the k-line is market's `KLine`, and a working space of another k-line contract is none of the definition's until that contract is held here.
-- Several series in one working space: market's `KLine` names no instrument and no period, the cleaner keeps a k-line only after the last kept one's date, and an `index` is a place in the one series. So a working space is one series, of one vendor, instrument and period, and the working spaces side by side are one for each (Open).
+- Several series in one working space: acquisition has one topic of each kind, known by its signature, and market's `KLine` names no security and no period, the cleaner keeps a k-line only after the last kept one's date, and an `index` is a place in the one series. So a working space is one series, of one signature, and the working spaces side by side are one for each signature. With it, as each table is of one working space: a table of several series, a table holding the rows of one series' kinds alone; a chart or an engine of several series, of two securities or of one security at two periods, say.
 - A vendor's own form as the system's input, and a correction of any form: both input logs are of k-lines, and a correction that is no bar, a deletion say, has no form.
 - A topic with a key.
-- A series spread over partitions or topics: each goes to its home, and the kind's other partitions hold nothing. With it: a kind with no topic, an engine with no topic of merged bars, and visualization in a working space showing no clean series.
+- A kind with no topic, or with several: each has one.
+- A series spread over its topic's partitions: it goes to its home, and the topic's other partitions hold nothing; the placement by index would keep it (Open).
+- An engine whose series is not the clean home: one that reads no clean topic, and one with no topic of merged bars. And visualization in a working space showing no clean series.
 - The engine's topics of any message: each carries one of chanlun's records, each record with a value.
 - A push of any form: what warehousing pushes is the record's value; the record's timestamp, its headers and its offset are not in the table.
 - Cleaning of any kind: the cleaner drops a k-line or keeps it, and repairs or fills none.
 - Visualization's one log of chart updates: it gives a log for each partition it reads.
+- A view of any form: visualization's logs are the values of the records it reads, and a view made of them in another form, an indicator say, is in none of its logs.
 - Working spaces side by side that no wiring makes: `Workspaces` holds wirings.
-- In the export, the entries of the fields that go: `Acquisition.Data.Kline`, `Acquisition.Data.Source`, `Acquisition.Data.Correction`, `Warehousing.Data.Push`, `Visualization.Data.View`, `Wiring.Push`, `Wiring.View`.
+- In the export, the entries of the fields that go: `Acquisition.Data.Kline`, `Acquisition.Data.Source`, `Acquisition.Data.Correction`, `Acquisition.Data.Topic`, `Warehousing.Data.Push`, `Visualization.Data.View`, `Wiring.Engine.Clean`, `Wiring.Push`, `Wiring.Shown`, `Wiring.View`.
 
 ## The files it shapes
 
