@@ -2,7 +2,7 @@
 
 ## Responsibility
 
-It owns the platform's formal definition in Lean: the base (Kahn process networks: logs, processes, networks), Kafka's topic, the four components (acquisition, warehousing, visualization, the market model engine) and their wiring, every claim about them proved. It gives the definition as one product, `qi-v2-platform-definition`, with the export of its open parts. It does not own any component's code, which is each component's own project's; the tools, Lean and the kit are taken, not owned.
+It owns the platform's formal definition in Lean: the base (Kahn process networks: logs, processes, networks), the contract specs (the formal definition of market's and chanlun's contracts, their records and their rules, which the contracts take from it), Kafka's topic, the four components (acquisition, warehousing, visualization, the market model engine), each taking the contracts' records, and their wiring, every claim about them proved. It gives the definition as one product, `qi-v2-platform-definition`, with the export of its open parts. It does not own any component's code, which is each component's own project's; the tools, Lean and the kit are taken, not owned.
 
 ## Products
 

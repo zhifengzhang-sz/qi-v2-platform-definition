@@ -15,6 +15,9 @@ Taken as given, like replication and brokers: how records travel and are stored 
 compression, transactions, producer ids). A record's position in its log stands for its offset:
 Kafka's offsets can skip numbers, but their order is the same. Which partition a record goes to is
 the writer's choice, not the topic's.
+
+A topic of a working space is made from its name and its partitions, with no key and values of its
+kind's message, a contract's record or one made of them (`TopicOf`): no record of it has a key.
 -/
 
 namespace Kafka
@@ -43,6 +46,22 @@ structure Topic where
 /-- What a topic holds: one log of records for each partition. Kafka keeps order within a partition
 only. -/
 abbrev Topic.Logs (t : Topic) := Fin t.partitions → Log (Record t.Key t.Value)
+
+/-- A topic of a working space, of values `V`: its name and its number of partitions (at least one).
+The topic is made with no key and values of `V` (`toTopic`). -/
+structure TopicOf (V : Type) where
+  name : String
+  partitions : Nat
+  /-- a topic has at least one partition -/
+  partitions_pos : 0 < partitions
+
+/-- The Kafka topic: its keys of `Empty`, so that no record has one, and its values of `V`. -/
+abbrev TopicOf.toTopic {V : Type} (t : TopicOf V) : Topic where
+  name := t.name
+  partitions := t.partitions
+  partitions_pos := t.partitions_pos
+  Key := Empty
+  Value := V
 
 /-- No view that replaces a record already given is a process of the log. Compaction is one: for two
 records `r₁`, `r₂` of the same key it leaves `r₁` from the log `r₁`, and only `r₂` from the log

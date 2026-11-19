@@ -1,4 +1,6 @@
 import Kahn
+import Contract.Market
+import Contract.Chanlun
 import Kafka
 import Acquisition
 import Warehousing

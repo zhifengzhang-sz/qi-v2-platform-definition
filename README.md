@@ -12,13 +12,15 @@ The platform's formal definition in Lean 4, on Kahn process networks (Kahn, 1974
 | `lean/Kahn/Log.lean` | a log: an append-only sequence of messages, finite or endless, ordered by prefix; every log is the limit of its finite prefixes |
 | `lean/Kahn/Merge.lean` | no process merges two logs by arrival |
 | `lean/Kahn/Rows.lean` | a set of rows: messages in no order; several logs into one set of rows is a process |
-| `lean/Kafka.lean` | Kafka's topic: one log of records for each partition, everything ever appended to it; no view that replaces a record already given, as compaction and retention do, is a process |
-| `lean/Acquisition.lean` | acquisition: a k-line contract's reader, cleaner and publisher, and the three kinds of data it publishes: the raw series (the vendor's corrected raw series, then its raw series), the clean series made from it, and the vendor's corrections; nothing published is taken back (`docs/acquisition.md` explains it) |
-| `lean/Warehousing.lean` | warehousing: the warehouse consumer, one for each schema, on every partition |
-| `lean/Visualization.lean` | visualization: a pure consumer of the clean topics and the engine's, giving the chart |
-| `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on the clean topics, publishing its own |
-| `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; a table of the database the rows pushed into it, in no order; several working spaces side by side, each topic with one writer and each table one working space |
-| `lean/Wiring.lean` | the components as one working space, the engine optional, and what the whole system comes to |
+| `lean/Contract/Market.lean` | market's contract, its formal definition: its records, the K-line and the ongoing K-line, field for field its `.proto`'s messages, and its rules, each a name and what holds of a record that keeps it |
+| `lean/Contract/Chanlun.lean` | 缠论's contract, its formal definition: its records, the merged bar, the 分型, the line, the 线段, the 走势 and the 中枢, and its rules, each of one record alone |
+| `lean/Kafka.lean` | Kafka's topic: one log of records for each partition, everything ever appended to it; no view that replaces a record already given, as compaction and retention do, is a process; a topic of a working space, made with no key and values of its kind's message |
+| `lean/Acquisition.lean` | acquisition, of market's k-line: its reader, cleaner and publisher, and the three kinds of data it publishes, each on topics of k-lines: the raw series (the vendor's corrected raw series, then its raw series), the clean series made from it, and the vendor's corrections; nothing published is taken back (`docs/acquisition.md` explains it) |
+| `lean/Warehousing.lean` | warehousing: the warehouse consumer, one for each schema, on every partition, what it pushes for a topic of the type of its values |
+| `lean/Visualization.lean` | visualization: a pure consumer of the clean topics and the engine's, giving one log for each partition of each, of the type of its values, from which the chart is drawn |
+| `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on the clean topics, publishing its own, each message one of its results, one of chanlun's records |
+| `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; a table of the database the rows pushed into it, in no order |
+| `lean/Wiring.lean` | the components as one working space, the engine optional, every message a contract's record or made of them, and what the whole system comes to; several working spaces side by side, each one a wiring makes, each topic with one writer and each table one working space |
 
 The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
@@ -30,7 +32,7 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
 `export/parts.json` gives the definition's open parts, so that what each product of the platform must give is read from the definition itself. Lean makes it from the definition, by `dev/parts.lean` (Checking it, below). It is a JSON object: `version`, the release's version, and `parts`, one entry for every field of every structure `lean/` declares, classes among them; a structure's fields are its own, a parent's (`Kahn.Domain.toPoset`) among them. The entries are sorted by name, and each has:
 
-- `name`: the field's full Lean name (`Acquisition.Data.Kline`).
+- `name`: the field's full Lean name (`Acquisition.Data.Topic`).
 - `structure`: the structure it is a field of (`Acquisition.Data`).
 - `type`: its type as Lean prints it in its structure, as `#print` shows it: the structure's parameters and `self` free, on one line, a proof printed `⋯`.
 - `doc`: its doc comment, as Lean holds it with the spaces at its ends trimmed, or empty.

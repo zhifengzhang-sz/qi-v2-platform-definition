@@ -6,7 +6,8 @@ import Kafka
 
 The warehouse consumer takes the topic schema, reads the data and pushes to the db based on the topic
 schema. Cleaning happens in acquisition, not in warehousing: the consumer is given by the schema
-alone. What it pushes is left open.
+alone. What it pushes for a topic whose schema gives values `V` is a `V`, a row of the topic's
+schema.
 
 The consumer reads one partition at a time. Reading all of a topic's partitions into one log, as
 their records arrive, would be a merge by arrival, which is not a process (`Kahn.no_arrival_merge`).
@@ -16,15 +17,12 @@ noncomputable section
 
 open Kahn
 
-/-- The kinds of data warehousing works on. -/
+/-- The topics warehousing reads. -/
 structure Warehousing.Data where
   /-- the topics warehousing reads -/
   Topic : Type
   /-- each one a Kafka topic -/
   topic : Topic → Kafka.Topic
-  /-- what the consumer pushes into the database for a topic whose schema gives keys `K` and values
-  `V`: left open -/
-  Push : (K V : Type) → Type
 
 namespace Warehousing
 
@@ -33,16 +31,18 @@ variable (D : Data)
 /-- The topics warehousing reads. -/
 abbrev Topics := ∀ t : D.Topic, (D.topic t).Logs
 
-/-- What warehousing pushes into the database: for each topic, one log for each partition. -/
+/-- What warehousing pushes into the database: for each topic, one log for each partition, of the
+topic's values. -/
 abbrev Pushes :=
-  ∀ t : D.Topic, Fin (D.topic t).partitions → Log (D.Push (D.topic t).Key (D.topic t).Value)
+  ∀ t : D.Topic, Fin (D.topic t).partitions → Log (D.topic t).Value
 
 end Warehousing
 
 /-- Warehousing. -/
 structure Warehousing (D : Warehousing.Data) where
-  /-- the warehouse consumer: one for each schema, the same for every topic and partition of it -/
-  consumer : (K V : Type) → Process (Log (Kafka.Record K V)) (Log (D.Push K V))
+  /-- the warehouse consumer: one for each schema, the same for every topic and partition of it; what
+  it pushes for a topic whose schema gives keys `K` and values `V` is a `V` -/
+  consumer : (K V : Type) → Process (Log (Kafka.Record K V)) (Log V)
 
 namespace Warehousing
 

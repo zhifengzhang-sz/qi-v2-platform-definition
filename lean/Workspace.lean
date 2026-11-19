@@ -25,11 +25,11 @@ rows is a modelling choice, not a theorem, and so is what a row is: a message ma
 it is from, so that a message one log pushes twice is one row, and a message two logs push is two.
 
 A working space has one acquisition. Several working spaces may work side by side, one for each
-acquisition (`Workspaces`): each topic still has one writer, so no two topics of any of them have
-the same name, and each table has one working space, so no table is written by two of them. A
-topic's reason is its logs: two writers into one log would merge by arrival. A table keeps no
-order and has no such reason: one working space to a table is a modelling choice, by which what a
-table holds is defined within one working space.
+acquisition, each one a wiring makes (`Workspaces`, `lean/Wiring.lean`): each topic still has one
+writer, so no two topics of any of them have the same name, and each table has one working space,
+so no table is written by two of them. A topic's reason is its logs: two writers into one log would
+merge by arrival. A table keeps no order and has no such reason: one working space to a table is a
+modelling choice, by which what a table holds is defined within one working space.
 -/
 
 noncomputable section
@@ -167,34 +167,5 @@ theorem has_tableRows (i : W.Inputs) (name : String) (o : W.TableLog name)
   Iff.rfl
 
 end Workspace
-
-/-- Several working spaces side by side, one for each acquisition. Each topic has one writer and
-each table of the database one working space: no two topics of any of them have the same name, and
-no table is written by two of them. -/
-structure Workspaces (ι : Type) where
-  /-- the working spaces -/
-  space : ι → Workspace
-  /-- no two topics, of one working space or of two, have the same name -/
-  topics_distinct : ∀ (i j : ι) (c c' : Workspace.Component) (t : (space i).Topic c)
-      (t' : (space j).Topic c'),
-    ((space i).topic c t).name = ((space j).topic c' t').name →
-      (⟨i, c, t⟩ : Σ i, Σ c, (space i).Topic c) = ⟨j, c', t'⟩
-  /-- no table is written by two working spaces -/
-  tables_distinct : ∀ (i j : ι) (o : (space i).Output .warehousing) (o' : (space j).Output .warehousing),
-    (space i).table o = (space j).table o' → i = j
-
-namespace Workspaces
-
-variable {ι : Type} (S : Workspaces ι)
-
-/-- The working spaces as one process: each one's system, on its own input logs. -/
-def system : Process (∀ i, (S.space i).Inputs) (∀ i, (S.space i).Topics × (S.space i).Outputs) :=
-  Process.pi fun i => (S.space i).system ⊚ Process.proj (κ := fun i => (S.space i).Inputs) i
-
-/-- What each working space gives depends on its own input logs alone. -/
-theorem system_apply (x : ∀ i, (S.space i).Inputs) (i : ι) : S.system x i = (S.space i).system (x i) :=
-  rfl
-
-end Workspaces
 
 end
