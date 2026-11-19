@@ -7,11 +7,11 @@ the line (笔), the 线段, the 走势 and the 中枢. The contract says what a 
 right by the lessons, and not how records are gathered: a run of them, their order, and which is
 still going on are their user's. The records are those of the contract's `.proto`, field for field;
 each rule is a name and what holds of a record that keeps it. Each rule is of one record alone. They
-are the contract's, in name and meaning as the contract's Lean states them, and the contract takes
-them from the definition at a release (`qi-v2-contracts`). What stays the contract's own is code to
-run or the wire's form: the `.proto`, the reader of Protobuf's JSON (`ProtoJson`, the `FromJson`
-instances), the examples and the program that checks them against the rules, Go and TypeScript. So
-this module imports nothing, where the contract's Lean imports `Lean.Data.Json` for its reader alone.
+are the contract's, in name and meaning as the contract's Lean states them (`qi-v2-contracts`). What
+stays the contract's own: the `.proto`, the wire's form; the reader of Protobuf's JSON (`ProtoJson`,
+the `FromJson` instances), code to run; the examples and the program that checks them against the
+rules; Go and TypeScript. So this module imports nothing, where the contract's Lean imports
+`Lean.Data.Json` for its reader alone.
 
 A position is a K-line's place in its series, from 0, market's `KLine.index`: a merged bar's
 `index`, `start`, `end`, `confirmEnd` and `extremes`. A bar is a merged bar's number, its `mIndex`,

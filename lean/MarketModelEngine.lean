@@ -7,8 +7,7 @@ import Contract.Chanlun
 # The market model engine
 
 Optional. A worker: it reads the clean k-line topics, of market's `KLine`, and publishes topics of
-its own, each message one of its results (`Result`): one of chanlun's records
-(`lean/Contract/Chanlun.lean`). Each topic is made with no key (`Kafka.TopicOf`).
+its own, of its results (`Result`), each one of chanlun's records (`lean/Contract/Chanlun.lean`). Each topic is made with no key (`Kafka.TopicOf`).
 
 The worker is a process of the topics it reads. Reading several topics or partitions into one log,
 as their records arrive, would be a merge by arrival, which is not a process
@@ -19,7 +18,7 @@ noncomputable section
 
 open Kahn
 
-/-- A result of the engine, the message of its topics: one of chanlun's six records, which one said
+/-- A result of the engine, of which its topics' values are: one of chanlun's six records, which one said
 by its case. It is the platform's message, made of the chanlun contract's records, not the
 contract's. -/
 inductive MarketModelEngine.Result where

@@ -16,8 +16,9 @@ compression, transactions, producer ids). A record's position in its log stands 
 Kafka's offsets can skip numbers, but their order is the same. Which partition a record goes to is
 the writer's choice, not the topic's.
 
-A topic of a working space is made from its name and its partitions, with no key and values of its
-kind's message, a contract's record or one made of them (`TopicOf`): no record of it has a key.
+Each topic of a working space the wiring makes is made from its name and its partitions, with no key
+and values of its kind's message (`TopicOf`, `lean/Wiring.lean`): no record of it has a key.
+`TopicOf` itself takes values of any type, and a topic in general keys and values of any types.
 -/
 
 namespace Kafka
@@ -47,8 +48,8 @@ structure Topic where
 only. -/
 abbrev Topic.Logs (t : Topic) := Fin t.partitions → Log (Record t.Key t.Value)
 
-/-- A topic of a working space, of values `V`: its name and its number of partitions (at least one).
-The topic is made with no key and values of `V` (`toTopic`). -/
+/-- A topic of no key and values of `V`, as each topic of a working space the wiring makes is: its
+name and its number of partitions (at least one); the topic itself is `toTopic`. -/
 structure TopicOf (V : Type) where
   name : String
   partitions : Nat

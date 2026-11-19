@@ -4,11 +4,11 @@
 The market data contract's formal definition: its records and its rules. The K-line and the ongoing
 K-line, of whatever source gives them. The records are those of the contract's `.proto`, field for
 field; each rule is a name and what holds of a record that keeps it. They are the contract's, in name
-and meaning as the contract's Lean states them, and the contract takes them from the definition at a
-release (`qi-v2-contracts`). What stays the contract's own is code to run or the wire's form: the
-`.proto`, the reader of Protobuf's JSON (`ProtoJson`, the `FromJson` instances), the examples and the
-program that checks them against the rules, Go and TypeScript. So this module imports nothing, where
-the contract's Lean imports `Lean.Data.Json` for its reader alone.
+and meaning as the contract's Lean states them (`qi-v2-contracts`). What stays the contract's own:
+the `.proto`, the wire's form; the reader of Protobuf's JSON (`ProtoJson`, the `FromJson`
+instances), code to run; the examples and the program that checks them against the rules; Go and
+TypeScript. So this module imports nothing, where the contract's Lean imports `Lean.Data.Json` for
+its reader alone.
 
 A time is milliseconds since 1970-01-01 00:00:00 UTC: a K-line's `date`, an ongoing K-line's `asOf`.
 A position is a K-line's place in its series, from 0: its `index`. A price or a volume is a number,

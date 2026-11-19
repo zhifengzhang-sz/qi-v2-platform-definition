@@ -32,7 +32,7 @@ A contract is its records and its rules. A record is a structure, field for fiel
 
 The records and rules the definition holds are those the tables below give, as the contract's Lean states them, in name and meaning unchanged; the commit that moves them names the releases they are read from. Each contract is a module of its own, in its own namespace: `Contract.Market` (`lean/Contract/Market.lean`, namespace `Market`) and `Contract.Chanlun` (`lean/Contract/Chanlun.lean`, namespace `Chanlun`), so that a contract's own module of its name, which keeps its reader, imports the definition's with no clash of names. They import nothing: the contract's Lean imports `Lean.Data.Json` for its reader alone. Each keeps its own `Rule` and `broken`, as the two contracts state them, so that a contract takes its records and rules by the names it has.
 
-A field of type `Nat` holds a uint64. A value with a field past 2⁶⁴ − 1 is no record on the wire, which the contract's reader refuses; the definition, like the contract's Lean, holds that bound in the reader alone. That no field of a record the platform writes passes 2⁶⁴ − 1 is a modelling choice, not a theorem: a series' `index` reaches 2⁶⁴ only after 2⁶⁴ k-lines (Open).
+A field of type `Nat` holds a uint64. A value with a field past 2⁶⁴ − 1 is no record on the wire, which the contract's reader refuses; the definition, like the contract's Lean, holds that bound in the reader alone. That no field of a record the platform writes passes 2⁶⁴ − 1 is a modelling choice, not a theorem: a series' `index` reaches 2⁶⁴ only after 2⁶⁴ k-lines.
 
 `broken` and each rule's decision are computable, as the contracts state them, so that the contracts' program that checks their examples evaluates them. That program is the contracts' code; the definition's Lean is checked by its proofs.
 
@@ -69,13 +69,13 @@ Of the 87 parts of the export at 0.2.0, 23 are types (`Type`, or a family of the
 | Part at 0.2.0 | Fixed by | How |
 |---|---|---|
 | `Acquisition.Data.Kline` | market's `KLine` | the field goes: the raw, corrected raw and clean k-lines are `Market.KLine` |
-| `Acquisition.Data.Source` | market's `KLine` (Open) | the field goes: the source is a log of k-lines, the vendor's corrected raw series, then its raw series |
-| `Acquisition.Data.Correction` | market's `KLine` (Open) | the field goes: a correction is the bar as corrected, known by its `date`, and numbered by its place among the corrections |
+| `Acquisition.Data.Source` | market's `KLine` | the field goes: the source is a log of k-lines, the vendor's corrected raw series, then its raw series |
+| `Acquisition.Data.Correction` | market's `KLine` | the field goes: a correction is the bar as corrected, known by its `date`, and numbered by its place among the corrections |
 | `Kafka.Topic.Key` | no contract: `Empty` (Open) | each topic of a working space is made with no key |
 | `Kafka.Topic.Value` | the topic's kind | each topic of a working space is made with its kind's message: acquisition's topics `KLine`, the engine's its result, one of chanlun's six records (`MarketModelEngine.Result`, Open) |
-| `Warehousing.Data.Push` | the topic's value (Open) | the field goes: what is pushed for a record is its value |
+| `Warehousing.Data.Push` | the topic's value | the field goes: what is pushed for a record is its value |
 | `Wiring.Push` | as `Warehousing.Data.Push` | the field goes |
-| `Visualization.Data.View` | the records it reads (Open) | the field goes: visualization gives one log for each partition of each topic it reads, of that partition's values |
+| `Visualization.Data.View` | the records it reads | the field goes: visualization gives one log for each partition of each topic it reads, of that partition's values |
 | `Wiring.View` | as `Visualization.Data.View` | the field goes |
 | `Workspace.InputMsg` | market's `KLine` | a field of the general working space, which `Wiring.workspace` fills: both input logs are of k-lines |
 | `Workspace.OutputMsg` | the topics' values | as `InputMsg`: each log that leaves the system is of the value type of the topic it is from |
@@ -90,7 +90,7 @@ A working space is one series: one k-line series, of one signature, the security
 
 In the Lean (Open): the signature is `Acquisition.Signature`, its five fields strings, the exchange held even where the ticker carries it, a field of acquisition's data. The naming is one function of a signature and a topic's kind to a name, losing neither, a parameter of `Wiring` and of `Workspaces`, one for every working space side by side. Acquisition's data holds its signature and, for each kind, its topic's partitions and its home; the engine's data, its topic's partitions and its home. Each topic of a wiring is made from the naming of its signature and kind, its partitions, no key and its kind's message, so that no two of a wiring's topics have one name (`Wiring.acq_names` and `Wiring.cross_names` theorems, fields at 0.2.0). `Workspaces` holds wirings of the one naming, no two of one signature (a field of it), so that no two topics of any of them have one name (`Workspaces.topics_distinct` a theorem, a field at 0.2.0), and no table is written by two of them (`Workspaces.tables_distinct`, The working space). Without them, two wirings of one signature, each of its own naming, would pass a check of names alone and make two topics of one signature and kind.
 
-Market's `OngoingKLine` is held with its contract and carried by no topic: acquisition's three kinds carry complete k-lines (Open).
+Market's `OngoingKLine` is held with its contract and carried by no topic: acquisition's three kinds carry complete k-lines.
 
 ## The component specs
 
@@ -209,4 +209,4 @@ The theorems of `lean/` on the components are kept, each restated with the new t
 ## The files it shapes
 
 - The contract specs: `lean/Contract/Market.lean` and `lean/Contract/Chanlun.lean`, new; `lean/Kafka.lean` (`Kafka.TopicOf`, a topic of a working space, made with no key and its value); `lean/Acquisition.lean`, `lean/Warehousing.lean`, `lean/Visualization.lean`, `lean/MarketModelEngine.lean` (`MarketModelEngine.Result`), `lean/Wiring.lean`; `lean/Workspace.lean`, whose `Workspaces` moves beside `Wiring`, holding wirings; the list of modules, in `lean/lakefile.toml`, `dev/axioms.lean` and `dev/parts.lean`; `export/parts.json`; `README.md`, `PRODUCTS.md`, `docs/acquisition.md`.
-- The component specs and the topics: the same files of the components, `lean/Kafka.lean`, `lean/Kahn/Log.lean` (`Log.filterMap`), `lean/Wiring.lean` (the signature, the naming, the homes, `Workspaces` of one naming, no two of one signature), `export/parts.json`, `README.md`, `docs/acquisition.md`.
+- The component specs and the topics: the same files of the components (the signature and the homes in acquisition's and the engine's data), `lean/Kafka.lean`, `lean/Kahn/Log.lean` (`Log.filterMap`), `lean/Wiring.lean` (the naming, `Workspaces` of one naming, no two of one signature), `export/parts.json`, `README.md`, `docs/acquisition.md`.
