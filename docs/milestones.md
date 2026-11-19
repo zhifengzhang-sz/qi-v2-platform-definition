@@ -17,3 +17,9 @@
 **What.** The definition's open parts in a form its users can read: `export/parts.json`, one entry for every field of every structure of `lean/`, made by Lean from the definition and checked by make to be what Lean gives, given in each release from `qi-v2-platform-definition` 0.2.0 on.
 
 **Stands.** Done: `dev/parts.lean` makes it (`make parts`), `make parts-check` checks it at every commit, and the package gives it; 0.2.0 is the commit tagged `qi-v2-platform-definition-0.2.0`. Whether `origin` has the tag yet is in `docs/opening.md`.
+
+## 4. The contract specs and the component specs
+
+**What.** The definition's two parts: the contract specs, the formal definition of market's and chanlun's contracts, their records and their rules, held here and taken by the contracts at a release; and the component specs, each component's objectives, requirements and features, each requirement a `Prop` its processes meet; so that no data type of a component is open, and a component that gives nothing meets no spec. Its design: `docs/designs/contracts-and-specs.md`.
+
+**Stands.** Designed: the design is written and reviewed, and its proposals are under Open in `docs/decisions.md`, for the owner; `lean/` is 0.2.0's. Then, in order: the contract specs in the Lean, the component specs in the Lean, the release 0.3.0.
