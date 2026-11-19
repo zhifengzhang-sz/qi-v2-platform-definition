@@ -38,7 +38,7 @@ The records and the rules were read from the contract's own Lean in name and mea
 
 A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire, which the contract's reader refuses. That bound is held by the contract's reader alone, not by the records. That no field of a record the platform writes passes it is a modelling choice, not a theorem: a series' `index` reaches 2⁶⁴ only after 2⁶⁴ k-lines.
 
-`broken` and each rule's decision are computable, so that the contracts' program that checks their examples evaluates them. What an implementation of a contract must give, and what is its own: `docs/guide/market.md`, `docs/guide/chanlun.md`. On the wire a record crosses as Protobuf, read and written by code generated from the `.proto` with a standard library, and a message is its shape alone: the rules are applied within the workers that use them, which is what the component specs say.
+`broken` and each rule's decision are computable, so that the contracts' program that checks their examples evaluates them. How an implementation of a contract is made from its definition, what is its own, and how it is checked: `docs/guide/market.md`, `docs/guide/chanlun.md`. On the wire a record crosses as Protobuf, a message of the `.proto`, its shape alone: the rules are applied within the workers that use them, which is what the component specs say.
 
 ### Market
 
