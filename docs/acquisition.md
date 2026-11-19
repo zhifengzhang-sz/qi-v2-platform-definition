@@ -47,12 +47,19 @@ An `inductive` lists every form a value can take, and nothing else is one. $\mat
 ## The data
 
 ```lean
-/-- The topics an acquisition publishes. -/
-structure Acquisition.Data where
-  /-- the topics that carry data of kind `κ` -/
-  Topic : Kind → Type
-  /-- each one a Kafka topic of k-lines, with no key -/
-  topic : (κ : Kind) → Topic κ → Kafka.TopicOf Market.KLine
+/-- A series' signature: what its topics' names carry. The exchange is held even where the ticker
+carries it. -/
+structure Acquisition.Signature where
+  /-- the security: its ticker -/
+  security : String
+  /-- the market: a symbol -/
+  market : String
+  /-- the exchange: a symbol -/
+  exchange : String
+  /-- the source: an id (Massive, say, is a source) -/
+  source : String
+  /-- the k-line's period (1-minute or daily bars, say) -/
+  period : String
 
 namespace Acquisition
 
@@ -62,38 +69,27 @@ abbrev Series := Log Market.KLine
 /-- What acquisition reads: its source, and the vendor's corrections stream, both of k-lines. -/
 abbrev In := Log Market.KLine × Log Market.KLine
 
-variable (D : Data)
-
-/-- The topics of kind `κ`. -/
-abbrev Topics (κ : Kind) := ∀ t : D.Topic κ, (D.topic κ t).toTopic.Logs
-
-/-- All the topics, of every kind. -/
-abbrev AllTopics := ∀ κ : Kind, Topics D κ
+/-- What acquisition writes: for each kind, its topic's one partition, of k-lines. -/
+abbrev Out := Kind → Kafka.Partition Market.KLine
 
 end Acquisition
 ```
 
-### `structure Acquisition.Data`
-A structure is a record of named fields. Every field of `Data` is a placeholder: it says what kind of thing goes there, not what it is. The working space fills them in with its topics. The k-line is no placeholder: it is market's `KLine`, and so is every message acquisition reads.
-
-- $\mathrm{Topic} : \mathrm{Kind} \to \mathrm{Type}$: for each kind $\kappa$, $\mathrm{Topic}\,\kappa$ is the type of the topics that carry kind $\kappa$.
-- $\mathrm{topic} : (\kappa : \mathrm{Kind}) \to \mathrm{Topic}\,\kappa \to \mathrm{Kafka.TopicOf}\,\mathrm{Market.KLine}$: each of them is a Kafka topic of k-lines, given by its name and its partitions; it is made with no key and values of `Market.KLine` (`Kafka.TopicOf` in `lean/Kafka.lean`). The second argument's type depends on the first: $t$ must be one of the topics of kind $\kappa$.
+### `structure Acquisition.Signature`
+A structure is a record of named fields. A signature is five strings: the security (its ticker), the market, the exchange, the source and the k-line's period. It is what the names of a series' topics carry; acquisition's processes do not depend on it, so the wiring holds it (`lean/Wiring.lean`), and names each topic from it and the topic's kind.
 
 ### `namespace Acquisition` … `end Acquisition`
-The names defined in between get the prefix `Acquisition.`: `Acquisition.Series`, `Acquisition.Topics` and the others.
+The names defined in between get the prefix `Acquisition.`: `Acquisition.Series`, `Acquisition.In` and `Acquisition.Out`.
 
 ### `abbrev Series := Log Market.KLine`
 An `abbrev` is a shorthand:
 
 $$\mathrm{Series} := \mathrm{Log}\,\mathrm{Market.KLine}$$
 
-a log of market's k-lines. The raw series and the clean series are both one. $\mathrm{In} := \mathrm{Log}\,\mathrm{Market.KLine} \times \mathrm{Log}\,\mathrm{Market.KLine}$ is one of the same kind, where $A \times B$ puts two things side by side: here the source's log and the corrections' log, read together, both of k-lines. A correction is the bar as corrected. The vendor's own form is read into k-lines before the system's input, which is a modelling choice, not a theorem.
+a log of market's k-lines. The raw series and the clean series are both one. The others are shorthands of the same kind:
 
-### `variable (D : Data)`
-Every definition after it takes a $D$ as its first argument: one filling of the placeholders. $D.\mathrm{Topic}$ is $D$'s field $\mathrm{Topic}$. The shorthands after it depend on $D$:
-
-- $\mathrm{Topics}\,D\,\kappa := \forall\, t : D.\mathrm{Topic}\,\kappa,\ (D.\mathrm{topic}\,\kappa\,t).\mathrm{toTopic}.\mathrm{Logs}$: for every topic $t$ of kind $\kappa$, what that Kafka topic holds, one log of records for each of its partitions (`Topic.Logs` in `lean/Kafka.lean`), each record with no key and a k-line as its value, if it has one.
-- $\mathrm{AllTopics}\,D := \forall\, \kappa : \mathrm{Kind},\ \mathrm{Topics}\,D\,\kappa$: all the topics, of every kind.
+- $\mathrm{In} := \mathrm{Log}\,\mathrm{Market.KLine} \times \mathrm{Log}\,\mathrm{Market.KLine}$, where $A \times B$ puts two things side by side: here the source's log and the corrections' log, read together, both of k-lines. A correction is the bar as corrected. The vendor's own form is read into k-lines before the system's input, which is a modelling choice, not a theorem.
+- $\mathrm{Out} := \mathrm{Kind} \to \mathrm{Kafka.Partition}\,\mathrm{Market.KLine}$: for each kind, what its topic holds. A topic of a working space has one partition, no key and values of its kind's message (`Kafka.Topic.ofName` in `lean/Kafka.lean`), so it holds one log of records, each with no key and a k-line as its value, if it has one (`Kafka.Partition`).
 
 ## Acquisition
 
@@ -101,25 +97,25 @@ Every definition after it takes a $D$ as its first argument: one filling of the 
 open Acquisition
 
 /-- An acquisition, of market's k-line. -/
-structure Acquisition (D : Acquisition.Data) where
+structure Acquisition where
   /-- the reader: reads the source, gives the raw series -/
   reader : Process (Log Market.KLine) Series
   /-- the cleaner: raw ⇒ clean -/
   cleaner : Process Series Series
-  /-- the publisher, in three parts, each publishing one kind to the topics of that kind only: the raw
+  /-- the publisher, in three parts, each publishing one kind to the topic of that kind only: the raw
   series -/
-  publishRaw : Process Series (Topics D .raw)
+  publishRaw : Process Series (Kafka.Partition Market.KLine)
   /-- the clean series -/
-  publishClean : Process Series (Topics D .clean)
+  publishClean : Process Series (Kafka.Partition Market.KLine)
   /-- the vendor's corrections -/
-  publishCorrections : Process (Log Market.KLine) (Topics D .corrections)
+  publishCorrections : Process (Log Market.KLine) (Kafka.Partition Market.KLine)
 ```
 
 ### `open Acquisition`
-`Series`, `Topics` and the other shorthands can be written without the prefix.
+`Series`, `In` and `Out` can be written without the prefix.
 
-### `structure Acquisition (D : Acquisition.Data)`
-An acquisition, of market's k-line, for a given $D$: the reader, the cleaner, and the publisher in three parts. Each field is a process; how each is made is the implementation's. So is what each gives: any process of a field's type fills it, one that gives nothing among them (`Process.const` in `lean/Kahn/Process.lean`, at the least output). The definition holds a part to what it reads and writes and to Kahn's condition; that the topics of a kind hold their series is not required here, and is not a theorem.
+### `structure Acquisition`
+An acquisition, of market's k-line: the reader, the cleaner, and the publisher in three parts. Each field is a process; how each is made is the implementation's. So is what each gives: any process of a field's type fills it, one that gives nothing among them (`Process.const` in `lean/Kahn/Process.lean`, at the least output). The definition holds a part to what it reads and writes and to Kahn's condition; that the topic of a kind holds its series is not required here, and is not a theorem.
 
 ### `reader : Process (Log Market.KLine) Series`
 The reader reads the source and gives the raw series.
@@ -143,17 +139,15 @@ The raw series has two parts: first the vendor's corrected raw series, then the 
 The same shape as $\mathrm{reader}$: a process, and the two conditions hold for it. It reads the raw series and writes the clean series, both a $\mathrm{Series}$. How it cleans is the implementation's.
 
 ### `publishRaw`, `publishClean`, `publishCorrections`
-The publisher, in three parts of the same shape, one for each kind. Each reads one log and writes the topics of its kind alone: $\mathrm{publishClean}$ reads the clean series and writes $\mathrm{Topics}\,D\,\mathrm{clean}$, $\mathrm{publishCorrections}$ reads the vendor's corrections and writes $\mathrm{Topics}\,D\,\mathrm{corrections}$. A part cannot write a topic of another kind: its type does not allow it.
+The publisher, in three parts of the same shape, one for each kind. Each reads one log and writes one log, its kind's topic's one partition: $\mathrm{publishClean}$ reads the clean series, $\mathrm{publishCorrections}$ the vendor's corrections. A part writes the topic of its own kind alone: `run` puts each part's log on its kind's topic, and no other.
 
 ## How the parts are wired
 
 ```lean
 namespace Acquisition
 
-variable {D : Data}
-
 /-- Acquisition as one process: from the source and the corrections to every topic. -/
-def run (a : Acquisition D) : Process In (AllTopics D) :=
+def run (a : Acquisition) : Process In Out :=
   let corrections : Process In (Log Market.KLine) := Process.snd
   let raw : Process In Series := a.reader ⊚ Process.fst
   let clean : Process In Series := a.cleaner ⊚ raw
@@ -162,19 +156,19 @@ def run (a : Acquisition D) : Process In (AllTopics D) :=
     | .clean => a.publishClean ⊚ clean
     | .corrections => a.publishCorrections ⊚ corrections
 
-/-- The raw topics hold what the publisher makes of the raw series alone. -/
-theorem raw_topics (a : Acquisition D) (s c : Log Market.KLine) :
+/-- The raw topic holds what the publisher makes of the raw series alone. -/
+theorem raw_topics (a : Acquisition) (s c : Log Market.KLine) :
     a.run (s, c) .raw = a.publishRaw (a.reader s) :=
   rfl
 
-/-- The clean topics hold what the publisher makes of the clean series alone: the cleaner's, on the
+/-- The clean topic holds what the publisher makes of the clean series alone: the cleaner's, on the
 raw series. -/
-theorem clean_topics (a : Acquisition D) (s c : Log Market.KLine) :
+theorem clean_topics (a : Acquisition) (s c : Log Market.KLine) :
     a.run (s, c) .clean = a.publishClean (a.cleaner (a.reader s)) :=
   rfl
 
-/-- The corrections topics hold what the publisher makes of the vendor's corrections alone. -/
-theorem corrections_topics (a : Acquisition D) (s c : Log Market.KLine) :
+/-- The corrections topic holds what the publisher makes of the vendor's corrections alone. -/
+theorem corrections_topics (a : Acquisition) (s c : Log Market.KLine) :
     a.run (s, c) .corrections = a.publishCorrections c :=
   rfl
 
@@ -183,10 +177,7 @@ end Acquisition
 end
 ```
 
-### `variable {D : Data}`
-As `variable (D : Data)`, but in braces: Lean works out $D$ from the acquisition it is given, so it isn't written.
-
-### `def run (a : Acquisition D) : Process In (AllTopics D)`
+### `def run (a : Acquisition) : Process In Out`
 Acquisition $a$ as one process, from what it reads to all its topics. It is a process because wiring processes together gives a process (Kahn). The wiring uses these operations:
 
 $$(g \circledcirc f)\,x = g\,(f\,x) \qquad \mathrm{fst}\,(x, y) = x \qquad \mathrm{snd}\,(x, y) = y \qquad (\mathrm{pi}\,F)\,x\,\kappa = F\,\kappa\,x$$

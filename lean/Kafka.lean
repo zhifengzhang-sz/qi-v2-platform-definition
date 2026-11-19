@@ -16,9 +16,10 @@ compression, transactions, producer ids). A record's position in its log stands 
 Kafka's offsets can skip numbers, but their order is the same. Which partition a record goes to is
 the writer's choice, not the topic's.
 
-Each topic of a working space the wiring makes is made from its name and its partitions, with no key
-and values of its kind's message (`TopicOf`, `lean/Wiring.lean`): no record of it has a key.
-`TopicOf` itself takes values of any type, and a topic in general keys and values of any types.
+Each topic of a working space the wiring makes is made from its name, with one partition, no key and
+values of its kind's message (`Topic.ofName`, `lean/Wiring.lean`): no record of it has a key, and its
+one partition holds everything written to it, in order. A topic in general has any number of
+partitions, and keys and values of any types.
 -/
 
 namespace Kafka
@@ -48,21 +49,18 @@ structure Topic where
 only. -/
 abbrev Topic.Logs (t : Topic) := Fin t.partitions → Log (Record t.Key t.Value)
 
-/-- A topic of no key and values of `V`, as each topic of a working space the wiring makes is: its
-name and its number of partitions (at least one); the topic itself is `toTopic`. -/
-structure TopicOf (V : Type) where
-  name : String
-  partitions : Nat
-  /-- a topic has at least one partition -/
-  partitions_pos : 0 < partitions
-
-/-- The Kafka topic: its keys of `Empty`, so that no record has one, and its values of `V`. -/
-abbrev TopicOf.toTopic {V : Type} (t : TopicOf V) : Topic where
-  name := t.name
-  partitions := t.partitions
-  partitions_pos := t.partitions_pos
+/-- A topic of a working space, named `name`: one partition, its keys of `Empty`, so that no record
+has one, and its values of `V`. -/
+abbrev Topic.ofName (name : String) (V : Type) : Topic where
+  name := name
+  partitions := 1
+  partitions_pos := Nat.one_pos
   Key := Empty
   Value := V
+
+/-- What the one partition of a topic of a working space holds: a log of records of no key and values
+of `V`. -/
+abbrev Partition (V : Type) := Log (Record Empty V)
 
 /-- No view that replaces a record already given is a process of the log. Compaction is one: for two
 records `r₁`, `r₂` of the same key it leaves `r₁` from the log `r₁`, and only `r₂` from the log

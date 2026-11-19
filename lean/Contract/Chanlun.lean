@@ -22,6 +22,11 @@ A price is a number, which needs no more than 6 decimal places, more not refused
 merging, a line not yet ended, a 中枢 under construction; one set is after the record's `end`
 (`endBeforeConfirmEnd`).
 
+That a record keeps its contract is a structure of `Prop`s, one field for each of its rules, by the
+rule's name (`MergedBar.Keeps`, …), and a record keeps it exactly when it breaks none of its rules
+(`MergedBar.keeps_iff`, …, from `broken_eq_nil`). Each field's doc comment says what it is and in what
+unit, as the contract states it.
+
 A field of type `Nat` holds a uint64: a value with a field past 2⁶⁴ − 1 is no record on the wire,
 which the contract's reader refuses. That bound is held by the reader alone, as in the contract's
 Lean, not by the records here. `broken` and each rule's decision are computable, as the contract
@@ -40,56 +45,101 @@ structure Rule (α : Type) where
 def broken {α : Type} (rules : List (Rule α)) (x : α) : List String :=
   rules.filterMap fun r => if @decide _ (r.dec x) then none else some r.name
 
+/-- A record breaks none of `rules` exactly when each of them holds of it. -/
+theorem broken_eq_nil {α : Type} (rules : List (Rule α)) (x : α) :
+    broken rules x = [] ↔ ∀ r ∈ rules, r.holds x := by
+  induction rules with
+  | nil => simp [broken]
+  | cons r rs ih =>
+    have hrs : broken (r :: rs) x =
+        (if @decide _ (r.dec x) then none else some r.name).elim (broken rs x) (· :: broken rs x) := by
+      simp only [broken, List.filterMap_cons]
+      cases (if @decide _ (r.dec x) then none else some r.name) <;> rfl
+    rw [hrs, List.forall_mem_cons, ← ih]
+    by_cases h : r.holds x
+    · simp [h]
+    · simp [h]
+
 /-- 包含's merged bar. -/
 structure MergedBar where
+  /-- its number: a bar -/
   mIndex : Nat
+  /-- its direction, upward when `true` -/
   up : Bool
+  /-- its first K-line: a position -/
   start : Nat
+  /-- its last K-line: a position -/
   «end» : Nat
+  /-- the K-line that confirmed its end: a position; not set while it is still merging -/
   confirmEnd : Option Nat
+  /-- the K-lines of its extreme, of its high when it goes up, of its low when it goes down:
+  positions -/
   extremes : List Nat
+  /-- the K-line that represents it, one of `extremes`: a position -/
   index : Nat
+  /-- its high: a price -/
   high : Float
+  /-- its low: a price -/
   low : Float
   deriving Repr
 
 /-- 分型. -/
 structure Fractal where
+  /-- its merged bar: a bar -/
   mIndex : Nat
   deriving Repr
 
 /-- A line: a 笔. -/
 structure Line where
+  /-- its start merged bar: a bar -/
   start : Nat
+  /-- its end merged bar: a bar -/
   «end» : Nat
+  /-- the merged bar at which it was confirmed: a bar; not set while it is still going on -/
   confirmEnd : Option Nat
   deriving Repr
 
 /-- 线段 of a level. -/
 structure Segment where
+  /-- its start merged bar: a bar -/
   start : Nat
+  /-- its end merged bar: a bar -/
   «end» : Nat
+  /-- the merged bar at which it was confirmed: a bar; not set while it is still going on -/
   confirmEnd : Option Nat
+  /-- its level, from 0 -/
   level : Nat
   deriving Repr
 
 /-- 走势 of a level. -/
 structure Move where
+  /-- its start merged bar: a bar -/
   start : Nat
+  /-- its end merged bar: a bar -/
   «end» : Nat
+  /-- the merged bar at which it was confirmed: a bar; not set while it is still going on -/
   confirmEnd : Option Nat
+  /-- its level, from 0 -/
   level : Nat
   deriving Repr
 
 /-- 中枢 of a level. -/
 structure Consolidation where
+  /-- its level, from 0 -/
   level : Nat
+  /-- its start merged bar: a bar -/
   start : Nat
+  /-- its end merged bar: a bar -/
   «end» : Nat
+  /-- the merged bar at which it was confirmed: a bar; not set while it is under construction -/
   confirmEnd : Option Nat
+  /-- the top of its band, ZD to ZG: a price -/
   zg : Float
+  /-- the bottom of its band: a price -/
   zd : Float
+  /-- the top of its range, DD to GG: a price -/
   gg : Float
+  /-- the bottom of its range: a price -/
   dd : Float
   deriving Repr
 
@@ -116,6 +166,52 @@ def MergedBar.rules : List (Rule MergedBar) :=
     ⟨"extremesAscending", MergedBar.extremesAscending⟩, ⟨"indexInExtremes", MergedBar.indexInExtremes⟩,
     ⟨"endBeforeConfirmEnd", MergedBar.endBeforeConfirmEnd⟩]
 
+/-- A merged bar keeps chanlun's contract: each of its rules holds of it. -/
+structure MergedBar.Keeps (m : MergedBar) : Prop where
+  /-- its high and its low finite numbers -/
+  finite : m.finite
+  /-- its low not above its high -/
+  range : m.range
+  /-- each of its extremes from its first K-line to its last -/
+  extremesWithin : m.extremesWithin
+  /-- its extremes in ascending order, none twice -/
+  extremesAscending : m.extremesAscending
+  /-- its index one of its extremes -/
+  indexInExtremes : m.indexInExtremes
+  /-- its last K-line before the K-line that confirmed it, if it is confirmed -/
+  endBeforeConfirmEnd : m.endBeforeConfirmEnd
+
+/-- A merged bar keeps chanlun's contract exactly when it breaks none of its rules. -/
+theorem MergedBar.keeps_iff (m : MergedBar) : broken MergedBar.rules m = [] ↔ m.Keeps := by
+  rw [broken_eq_nil]
+  constructor
+  · intro h
+    exact ⟨h _ (.head _), h _ (.tail _ (.head _)), h _ (.tail _ (.tail _ (.head _))),
+      h _ (.tail _ (.tail _ (.tail _ (.head _)))),
+      h _ (.tail _ (.tail _ (.tail _ (.tail _ (.head _))))),
+      h _ (.tail _ (.tail _ (.tail _ (.tail _ (.tail _ (.head _))))))⟩
+  · intro h r hr
+    unfold MergedBar.rules at hr
+    cases hr with
+    | head => exact h.finite
+    | tail _ hr =>
+      cases hr with
+      | head => exact h.range
+      | tail _ hr =>
+        cases hr with
+        | head => exact h.extremesWithin
+        | tail _ hr =>
+          cases hr with
+          | head => exact h.extremesAscending
+          | tail _ hr =>
+            cases hr with
+            | head => exact h.indexInExtremes
+            | tail _ hr =>
+              cases hr with
+              | head => exact h.endBeforeConfirmEnd
+              | tail _ hr =>
+                cases hr
+
 /-- Why no rule says a merged bar's first K-line is not after its last: its index is one of its extremes, which are
 from its first to its last. -/
 theorem MergedBar.startNotAfterEnd (m : MergedBar) (h : m.indexInExtremes) (w : m.extremesWithin) :
@@ -124,6 +220,19 @@ theorem MergedBar.startNotAfterEnd (m : MergedBar) (h : m.indexInExtremes) (w : 
 
 /-- A 分型 has no rule. -/
 def Fractal.rules : List (Rule Fractal) := []
+
+/-- A 分型 keeps chanlun's contract: each of its rules holds of it. -/
+structure Fractal.Keeps (f : Fractal) : Prop
+
+/-- A 分型 keeps chanlun's contract exactly when it breaks none of its rules. -/
+theorem Fractal.keeps_iff (f : Fractal) : broken Fractal.rules f = [] ↔ f.Keeps := by
+  rw [broken_eq_nil]
+  constructor
+  · intro _
+    exact ⟨⟩
+  · intro h r hr
+    unfold Fractal.rules at hr
+    cases hr
 
 /-- Its start before its end. -/
 abbrev Line.startBeforeEnd (l : Line) : Prop := l.start < l.«end»
@@ -134,6 +243,29 @@ abbrev Line.endBeforeConfirmEnd (l : Line) : Prop := ∀ c ∈ l.confirmEnd, l.�
 def Line.rules : List (Rule Line) :=
   [⟨"startBeforeEnd", Line.startBeforeEnd⟩, ⟨"endBeforeConfirmEnd", Line.endBeforeConfirmEnd⟩]
 
+/-- A line keeps chanlun's contract: each of its rules holds of it. -/
+structure Line.Keeps (l : Line) : Prop where
+  /-- its start before its end -/
+  startBeforeEnd : l.startBeforeEnd
+  /-- its end before the merged bar at which it was confirmed, if it is confirmed -/
+  endBeforeConfirmEnd : l.endBeforeConfirmEnd
+
+/-- A line keeps chanlun's contract exactly when it breaks none of its rules. -/
+theorem Line.keeps_iff (l : Line) : broken Line.rules l = [] ↔ l.Keeps := by
+  rw [broken_eq_nil]
+  constructor
+  · intro h
+    exact ⟨h _ (.head _), h _ (.tail _ (.head _))⟩
+  · intro h r hr
+    unfold Line.rules at hr
+    cases hr with
+    | head => exact h.startBeforeEnd
+    | tail _ hr =>
+      cases hr with
+      | head => exact h.endBeforeConfirmEnd
+      | tail _ hr =>
+        cases hr
+
 /-- Its start before its end. -/
 abbrev Segment.startBeforeEnd (s : Segment) : Prop := s.start < s.«end»
 
@@ -143,6 +275,29 @@ abbrev Segment.endBeforeConfirmEnd (s : Segment) : Prop := ∀ c ∈ s.confirmEn
 def Segment.rules : List (Rule Segment) :=
   [⟨"startBeforeEnd", Segment.startBeforeEnd⟩, ⟨"endBeforeConfirmEnd", Segment.endBeforeConfirmEnd⟩]
 
+/-- A 线段 keeps chanlun's contract: each of its rules holds of it. -/
+structure Segment.Keeps (s : Segment) : Prop where
+  /-- its start before its end -/
+  startBeforeEnd : s.startBeforeEnd
+  /-- its end before the merged bar at which it was confirmed, if it is confirmed -/
+  endBeforeConfirmEnd : s.endBeforeConfirmEnd
+
+/-- A 线段 keeps chanlun's contract exactly when it breaks none of its rules. -/
+theorem Segment.keeps_iff (s : Segment) : broken Segment.rules s = [] ↔ s.Keeps := by
+  rw [broken_eq_nil]
+  constructor
+  · intro h
+    exact ⟨h _ (.head _), h _ (.tail _ (.head _))⟩
+  · intro h r hr
+    unfold Segment.rules at hr
+    cases hr with
+    | head => exact h.startBeforeEnd
+    | tail _ hr =>
+      cases hr with
+      | head => exact h.endBeforeConfirmEnd
+      | tail _ hr =>
+        cases hr
+
 /-- Its start before its end. -/
 abbrev Move.startBeforeEnd (m : Move) : Prop := m.start < m.«end»
 
@@ -151,6 +306,29 @@ abbrev Move.endBeforeConfirmEnd (m : Move) : Prop := ∀ c ∈ m.confirmEnd, m.�
 
 def Move.rules : List (Rule Move) :=
   [⟨"startBeforeEnd", Move.startBeforeEnd⟩, ⟨"endBeforeConfirmEnd", Move.endBeforeConfirmEnd⟩]
+
+/-- A 走势 keeps chanlun's contract: each of its rules holds of it. -/
+structure Move.Keeps (m : Move) : Prop where
+  /-- its start before its end -/
+  startBeforeEnd : m.startBeforeEnd
+  /-- its end before the merged bar at which it was confirmed, if it is confirmed -/
+  endBeforeConfirmEnd : m.endBeforeConfirmEnd
+
+/-- A 走势 keeps chanlun's contract exactly when it breaks none of its rules. -/
+theorem Move.keeps_iff (m : Move) : broken Move.rules m = [] ↔ m.Keeps := by
+  rw [broken_eq_nil]
+  constructor
+  · intro h
+    exact ⟨h _ (.head _), h _ (.tail _ (.head _))⟩
+  · intro h r hr
+    unfold Move.rules at hr
+    cases hr with
+    | head => exact h.startBeforeEnd
+    | tail _ hr =>
+      cases hr with
+      | head => exact h.endBeforeConfirmEnd
+      | tail _ hr =>
+        cases hr
 
 /-- Its band and its range finite numbers. -/
 abbrev Consolidation.finite (c : Consolidation) : Prop := ∀ x ∈ [c.zg, c.zd, c.gg, c.dd], x.isFinite
@@ -167,5 +345,39 @@ abbrev Consolidation.endBeforeConfirmEnd (c : Consolidation) : Prop := ∀ b ∈
 def Consolidation.rules : List (Rule Consolidation) :=
   [⟨"finite", Consolidation.finite⟩, ⟨"startBeforeEnd", Consolidation.startBeforeEnd⟩,
     ⟨"bands", Consolidation.bands⟩, ⟨"endBeforeConfirmEnd", Consolidation.endBeforeConfirmEnd⟩]
+
+/-- A 中枢 keeps chanlun's contract: each of its rules holds of it. -/
+structure Consolidation.Keeps (c : Consolidation) : Prop where
+  /-- its band and its range finite numbers -/
+  finite : c.finite
+  /-- its start before its end -/
+  startBeforeEnd : c.startBeforeEnd
+  /-- its band, ZD to ZG, within its range, DD to GG -/
+  bands : c.bands
+  /-- its end before the merged bar at which it was confirmed, if it is confirmed -/
+  endBeforeConfirmEnd : c.endBeforeConfirmEnd
+
+/-- A 中枢 keeps chanlun's contract exactly when it breaks none of its rules. -/
+theorem Consolidation.keeps_iff (c : Consolidation) : broken Consolidation.rules c = [] ↔ c.Keeps := by
+  rw [broken_eq_nil]
+  constructor
+  · intro h
+    exact ⟨h _ (.head _), h _ (.tail _ (.head _)), h _ (.tail _ (.tail _ (.head _))),
+      h _ (.tail _ (.tail _ (.tail _ (.head _))))⟩
+  · intro h r hr
+    unfold Consolidation.rules at hr
+    cases hr with
+    | head => exact h.finite
+    | tail _ hr =>
+      cases hr with
+      | head => exact h.startBeforeEnd
+      | tail _ hr =>
+        cases hr with
+        | head => exact h.bands
+        | tail _ hr =>
+          cases hr with
+          | head => exact h.endBeforeConfirmEnd
+          | tail _ hr =>
+            cases hr
 
 end Chanlun
