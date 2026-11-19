@@ -40,7 +40,7 @@ The decisions behind the definitions, and those still open: `docs/decisions.md`.
 
 ## Checking it
 
-In the project's shell (`nix develop`), once: `make install`. Then `make lean` builds the definitions, checks every proof, and checks that no constant of `lean/` rests on an axiom other than Lean's three (`dev/axioms.lean`), and `make verify` runs every check a commit requires. `make parts` makes `export/parts.json` from `lean/` as built, and `make parts-check`, which `make verify` runs, checks that the file is what Lean gives and that it holds to its form (`dev/parts-check.py`). `make help` lists the targets.
+In the project's shell (`nix develop`), once: `make install`. Then `make lean` builds the definitions, checks every proof, and checks that no constant of `lean/` rests on an axiom other than Lean's three (`dev/axioms.lean`), and `make verify` runs every check a commit requires. `make parts` makes `export/parts.json` from `lean/` as built, and `make parts-check`, which `make verify` runs, checks that the file is what Lean gives and that it holds to its form (`dev/parts.check.py`). `make help` lists the targets.
 
 ## Changes
 

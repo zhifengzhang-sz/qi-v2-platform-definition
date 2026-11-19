@@ -54,11 +54,11 @@ verify: ## the checks a commit requires, every one; the pre-commit hook runs it
 
 # kit locks asks each input's source over HTTPS; for a folder input whose repository moved it asks GitHub's compare
 # through gh, and where HTTPS fails it asks again by SSH. Both would act with a credential of the owner's, so it runs
-# with neither: dev/no-credential's gh, which never runs, first on PATH, and git with no SSH. Where it needs one, it
+# with neither: dev/no.credential's gh, which never runs, first on PATH, and git with no SSH. Where it needs one, it
 # stops, naming it, and the owner is asked (agents/rules.md, The credentials).
 locks-check: ## whether each lock is outdated: flake.lock's inputs (the kit's kit locks, with no credential); changes nothing
 	@test -x dev/agents/bin/kit || { echo "locks-check: no kit at dev/agents: make install"; exit 1; }
-	PATH="$(CURDIR)/dev/no-credential:$$PATH" GIT_SSH_COMMAND=false dev/agents/bin/kit locks --root .
+	PATH="$(CURDIR)/dev/no.credential:$$PATH" GIT_SSH_COMMAND=false dev/agents/bin/kit locks --root .
 
 products-check: ## whether PRODUCTS.md states what the project has (the kit's kit products)
 	@test -x dev/agents/bin/kit || { echo "products-check: no kit at dev/agents: make install"; exit 1; }
@@ -95,7 +95,7 @@ endef
 parts: ## the definition's open parts, export/parts.json, made by Lean from lean/ as built (dev/parts.lean; README.md, The open parts), its version flake.nix's; after make lean
 	$(call parts-into,export/parts.json)
 
-parts-check: ## whether export/parts.json is what Lean gives (made again into .reports/parts.json, compared byte for byte), then its form (dev/parts-check.py); PARTS=<file> checks another file
+parts-check: ## whether export/parts.json is what Lean gives (made again into .reports/parts.json, compared byte for byte), then its form (dev/parts.check.py); PARTS=<file> checks another file
 	$(call parts-into,.reports/parts.json)
 	@cmp -s .reports/parts.json $(PARTS) || { echo "parts-check: $(PARTS) is not what Lean gives (.reports/parts.json): make parts"; exit 1; }
-	@$(PY) -I dev/parts-check.py $(PARTS) $(VERSION)
+	@$(PY) -I dev/parts.check.py $(PARTS) $(VERSION)

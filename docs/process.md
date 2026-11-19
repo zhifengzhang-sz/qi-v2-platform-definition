@@ -12,7 +12,7 @@ Nix with flakes; GitHub's access for a push (an SSH key on the account). Then th
 | the product, `qi-v2-platform-definition` | `flake.nix`'s package, `README.md` (with its Changes), `LICENSE`, `export/parts.json` (the definition's open parts) | yes | the sessions, a release by its tag; `export/parts.json` by `make parts` |
 | the Lake package | `lean/lakefile.toml`, `lean/lake-manifest.json`, `lean/lean-toolchain` | yes | the sessions |
 | what it owns, gives and takes | `PRODUCTS.md` | yes | the sessions, in the commit of the change it describes |
-| the project's machinery | `flake.nix`, `flake.lock`, `Makefile`, `dev/hooks/`, `dev/no-credential/`, `dev/axioms.lean` (the axiom audit `make lean` runs), `dev/parts.lean` (the export `make parts` makes), `dev/parts-check.py` (the form `make parts-check` checks), `.envrc` | yes | the sessions |
+| the project's machinery | `flake.nix`, `flake.lock`, `Makefile`, `dev/hooks/`, `dev/no.credential/`, `dev/axioms.lean` (the axiom audit `make lean` runs), `dev/parts.lean` (the export `make parts` makes), `dev/parts.check.py` (the form `make parts-check` checks), `.envrc` | yes | the sessions |
 | the state of the work | `docs/opening.md`, `docs/milestones.md`, `docs/decisions.md`, `docs/designs/` (the designs a later session relies on: `spec.md`) | yes | each session, at its end |
 | what a definition means, in words | `docs/acquisition.md` | yes | the sessions, with the definition it explains |
 | the rules for agents, their source | `agents/` | yes | the sessions, the owner approving |

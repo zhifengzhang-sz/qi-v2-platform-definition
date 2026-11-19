@@ -1,7 +1,7 @@
 """Whether a file of the definition's open parts holds to its form (README.md, The open parts).
 
 make parts-check runs it on export/parts.json, after comparing the file with what Lean gives:
-python3 -I dev/parts-check.py <file> <version>. It checks that the file is an object of `version` and
+python3 -I dev/parts.check.py <file> <version>. It checks that the file is an object of `version` and
 `parts` alone, that `version` is the one given (flake.nix's), that every entry has the five keys and no
 other, each a string but `uses`, a list of strings, that the entries are sorted by name and no two
 share one, and that each entry's `uses` is sorted, leaves out its own name, and names entries alone.
@@ -55,7 +55,7 @@ def faults(d, version):
 
 def main(argv):
     if len(argv) != 3:
-        print("parts-check: python3 -I dev/parts-check.py <file> <version>")
+        print("parts-check: python3 -I dev/parts.check.py <file> <version>")
         return 1
     path, version = argv[1], argv[2]
     with open(path, encoding="utf-8") as f:
