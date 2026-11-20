@@ -6,7 +6,7 @@
 {
   description = "qi-v2-platform-definition: the platform's formal definition in Lean, on Kahn process networks";
 
-  inputs.qi-v2.url = "github:zhifengzhang-sz/qi-v2-nix?dir=qi-v2";
+  inputs.qi-v2.url = "github:zhifengzhang-sz/qi-v2-nix?dir=qi-v2&ref=qi-v2-1.0.0";
   inputs.nixpkgs.follows = "qi-v2/nixpkgs";
   inputs.kit.url = "github:zhifengzhang-sz/qi-v2-nix?dir=kit";
   inputs.kit.inputs.qi-v2.follows = "qi-v2";

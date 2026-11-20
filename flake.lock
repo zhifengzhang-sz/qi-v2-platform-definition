@@ -49,16 +49,17 @@
       },
       "locked": {
         "dir": "qi-v2",
-        "lastModified": 1794290581,
-        "narHash": "sha256-NeCBniUtfg9j6WqDGmGfhubTP3iSZuUdtoQBkDWh8ns=",
+        "lastModified": 1795184547,
+        "narHash": "sha256-SZciZk/xB6ITRUSrwedSTG5AsCaB12mBMtJJ+Esppn4=",
         "owner": "zhifengzhang-sz",
         "repo": "qi-v2-nix",
-        "rev": "27e7c47a8f947969f01c93927e4c7497945fb624",
+        "rev": "8e7e45fcc9db216eb06205e5f28dc80b9fe5b8a6",
         "type": "github"
       },
       "original": {
         "dir": "qi-v2",
         "owner": "zhifengzhang-sz",
+        "ref": "qi-v2-1.0.0",
         "repo": "qi-v2-nix",
         "type": "github"
       }
