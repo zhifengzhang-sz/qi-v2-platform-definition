@@ -22,7 +22,7 @@
 
 ## Standing rules learnt
 
-- This project reads any project's folder, writing none of it, but one, which the owner's brief of 2026-11-19 names and this project does not read (the owner, 2026-11-19).
+- This project reads any project's folder, writing none of it, but one, which the owner's brief of 2026-11-19 names and this project does not read, as it could mislead (the owner, 2026-11-19, 2026-11-20). The building has gone through several iterations, and formal specs of earlier ones are in other projects: they are read where the definition needs them (the owner, 2026-11-20).
 - A fault the session made is fixed by the session without waiting for the owner's word: the owner's one decision on a fault is that the right thing is delivered. Design choices are made with the owner (the owner, 2026-11-20).
 - This project gives all the formal specs the rest of the building needs; how another project works is not its concern, and a choice is made on the definition's own reasons (the owner, 2026-11-20).
 - Verification, the reviewer's round and the checker's `make verify`, runs once, at the end of a piece of work, not after each step; the pre-commit hook's run stands (the owner, 2026-11-20).
