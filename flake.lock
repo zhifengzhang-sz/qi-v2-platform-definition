@@ -13,16 +13,17 @@
       },
       "locked": {
         "dir": "kit",
-        "lastModified": 1794290581,
-        "narHash": "sha256-NeCBniUtfg9j6WqDGmGfhubTP3iSZuUdtoQBkDWh8ns=",
+        "lastModified": 1795198476,
+        "narHash": "sha256-H+D+80VdJJxlK7pdbXPOHYHqX+2SBx3b53cOJsqGPoQ=",
         "owner": "zhifengzhang-sz",
         "repo": "qi-v2-nix",
-        "rev": "27e7c47a8f947969f01c93927e4c7497945fb624",
+        "rev": "dc266e9de5497a81f5f4fbef0cf208b87aa5ce91",
         "type": "github"
       },
       "original": {
         "dir": "kit",
         "owner": "zhifengzhang-sz",
+        "ref": "release/kit",
         "repo": "qi-v2-nix",
         "type": "github"
       }
@@ -49,17 +50,17 @@
       },
       "locked": {
         "dir": "qi-v2",
-        "lastModified": 1795184547,
-        "narHash": "sha256-SZciZk/xB6ITRUSrwedSTG5AsCaB12mBMtJJ+Esppn4=",
+        "lastModified": 1795198476,
+        "narHash": "sha256-HrZXCvgOQCzoclqJfhoMbdE5gxF1cAj0MTYcK27WgFA=",
         "owner": "zhifengzhang-sz",
         "repo": "qi-v2-nix",
-        "rev": "8e7e45fcc9db216eb06205e5f28dc80b9fe5b8a6",
+        "rev": "84dec2cbc0a8741d65bde5da168786ee26a0aa58",
         "type": "github"
       },
       "original": {
         "dir": "qi-v2",
         "owner": "zhifengzhang-sz",
-        "ref": "qi-v2-1.0.0",
+        "ref": "release/qi-v2",
         "repo": "qi-v2-nix",
         "type": "github"
       }

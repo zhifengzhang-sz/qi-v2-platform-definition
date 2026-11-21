@@ -1,14 +1,14 @@
 # qi-v2-platform-definition's tools and product, the same on every machine (docs/process.md): `nix develop`, then
-# `make install` and the targets of the Makefile. Everything from outside is an input pinned by flake.lock: qi-v2's
-# one nixpkgs, its pure shell and its Lean; the kit, which writes the agents' files from agents/. The product,
-# qi-v2-platform-definition (README.md), is the package of the same name: the Lake package of lean/, as source,
-# with the export of its open parts, export/parts.json.
+# `make install` and the targets of the Makefile. Everything from outside is an input pinned by flake.lock, qi-v2 and
+# the kit each by its release branch: qi-v2's one nixpkgs, its pure shell and its Lean; the kit, which writes the
+# agents' files from agents/. The product, qi-v2-platform-definition (README.md), is the package of the same name:
+# the Lake package of lean/, as source, with the export of its open parts, export/parts.json.
 {
   description = "qi-v2-platform-definition: the platform's formal definition in Lean, on Kahn process networks";
 
-  inputs.qi-v2.url = "github:zhifengzhang-sz/qi-v2-nix?dir=qi-v2&ref=qi-v2-1.0.0";
+  inputs.qi-v2.url = "github:zhifengzhang-sz/qi-v2-nix?dir=qi-v2&ref=release/qi-v2";
   inputs.nixpkgs.follows = "qi-v2/nixpkgs";
-  inputs.kit.url = "github:zhifengzhang-sz/qi-v2-nix?dir=kit";
+  inputs.kit.url = "github:zhifengzhang-sz/qi-v2-nix?dir=kit&ref=release/kit";
   inputs.kit.inputs.qi-v2.follows = "qi-v2";
 
   outputs = { self, nixpkgs, qi-v2, kit }:
@@ -47,6 +47,7 @@
             # the Lean of lean/: qi-v2's lean preset, the version lean/lean-toolchain names (make lean checks it)
             uses = [ (qi-v2.lib.lean pkgs) ];
             packages = with pkgs; [ gnumake git gh curl gzip openssh python3 ] ++ extra;
+            # of the host, nix: make install builds the kit with it, and the kit's checks run it where none is linked
             hostTools = [ "nix" "nix-store" ];
             env = { QI_DEFINITION_SHELL = "1"; };
             closing = ''echo "qi-v2-platform-definition: make help lists the targets; docs/opening.md says where the work stands"'';

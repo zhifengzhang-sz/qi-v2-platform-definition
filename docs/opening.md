@@ -13,7 +13,8 @@
 - The export's `version` is flake.nix's, 0.2.0, on 141 entries, where the release 0.2.0's had 87: it moves with the release.
 - Where the `.proto` of the engine's result message is kept: it is the platform's message, not a contract's, and not the definition's.
 - The push: `main`'s commits after `0b622b4` (the last `origin/main` this clone has seen) and the tag `qi-v2-platform-definition-0.2.0` are on this machine alone.
-- `make locks-check` was not run (it reaches the network): whether `flake.lock`'s `qi-v2` and `kit` are today's is not known; both are pinned at `27e7c47`.
+- The project's files follow the kit's shared rules (`docs/decisions.md`, 2026-11-21): `qi-v2` and the kit are taken by their release branches, pinned in `flake.lock` by `nix flake update qi-v2 kit`; the Makefile's and `.gitignore`'s kit's part are the kit's; the pre-commit hook is the one `make install` writes (`core.hooksPath` unset), and `make verify` holds what the project's own hook checked: the work tree is what is staged, before the checks and after them. So the checker's `make verify` runs once the session has staged the change, and a commit is made from the project's shell, where make runs. `make locks-check` was not run since.
+- This project's own release: `README.md` and the decision of 2026-11-10 have it taken by its tag; the kit's shared rule has a release move its release branch, `release/qi-v2-platform-definition`, which a taker follows (`origin` has no such branch). Which stands is the owner's.
 - What `uses` gives follows how Lean elaborates a type, by the rule as `README.md` gives it: an entry whose topic is made by `Kafka.Topic.ofName` uses every field of `Kafka.Topic`, `Key` and `Value` among them, which that topic fixes (`Wiring.warehousing`). The rule is applied as written.
 - The list of `lean/`'s modules has three homes: `lean/lakefile.toml`, the imports of `dev/axioms.lean` and those of `dev/parts.lean`; one could hold it, the others checked against it.
 - Role runs by hand (`make run-start`, `make run-check`) write no line to `agents.run/log`: their check is `make run-check`'s output.
@@ -26,4 +27,4 @@
 - A fault the session made is fixed by the session without waiting for the owner's word: the owner's one decision on a fault is that the right thing is delivered. Design choices are made with the owner (the owner, 2026-11-20).
 - This project gives all the formal specs the rest of the building needs; how another project works is not its concern, and a choice is made on the definition's own reasons (the owner, 2026-11-20).
 - Verification, the reviewer's round and the checker's `make verify`, runs once, at the end of a piece of work, not after each step; the pre-commit hook's run stands (the owner, 2026-11-20).
-- A file's name has no `-` or `_`: a `.` takes their place (the owner, 2026-11-20). Names a tool fixes are kept: `lean/lean-toolchain`, `lean/lake-manifest.json`, `dev/hooks/pre-commit`.
+- A file's name has no `-` or `_`: a `.` takes their place (the owner, 2026-11-20). Names a tool fixes are kept: `lean/lean-toolchain`, `lean/lake-manifest.json`.

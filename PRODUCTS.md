@@ -14,6 +14,6 @@ It owns the platform's formal definition in Lean: the base (Kahn process network
 
 | Product | From | Pinned by |
 |---|---|---|
-| `qi-v2` | `qi-v2-nix` | `flake.lock` |
+| `qi-v2` | `qi-v2-nix`, its release branch `release/qi-v2` | `flake.lock` |
 | `nixpkgs` | `qi-v2`, which it follows | `flake.lock` |
-| `kit` | `qi-v2-nix` | `flake.lock` |
+| `kit` | `qi-v2-nix`, its release branch `release/kit` | `flake.lock` |

@@ -1,8 +1,8 @@
 # qi-v2-platform-definition (README.md): make targets, run inside `nix develop` (flake.nix, docs/process.md), which
 # gives every tool they call (flake.nix's shell), and the kit at dev/agents (make install); of the host, only nix.
-# Outside it, make stops.
+# Outside it, make stops, the pre-commit hook's make verify among them.
 ifneq ($(QI_DEFINITION_SHELL),1)
-$(error run make inside this project's shell: nix develop, then make …, or nix develop -c make … (docs/process.md))
+$(error run make inside this project's shell: nix develop, then make …, or nix develop -c make …; a commit from nix develop (docs/process.md))
 endif
 SHELL := $(shell command -v bash)
 ifeq ($(SHELL),)
@@ -10,59 +10,70 @@ $(error no bash in this project's shell)
 endif
 
 PY := python3
-AGENT_KIND ?= all
 
-.PHONY: help install agents agents-check run-start run-check verify locks-check products-check lean parts parts-check
+.PHONY: help agents-check lean parts parts-check
 
 help: ## the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/' | expand -t 22
 
-# ---------------------------------------------------------------- the project set up (docs/process.md, The machine)
+# ---------------------------------------------------------------- the kit's part, as qi-v2-nix's practices.md gives it (section 8)
 
-install: ## the project set up on this machine: git's hooks at dev/hooks (the pre-commit runs make verify); the kit linked at dev/agents from flake.lock's pin, then make agents
-	git config core.hooksPath dev/hooks
-	@test -n "$(KIT)" || { echo "install: no kit's pin read from flake.lock (nodes.kit.locked)"; exit 1; }
-	nix build "$(KIT)" -o dev/agents
+# verify then runs the project's own checks, and locks-check runs the kit with no credential of the owner's (below).
+
+# the kit at the commit flake.lock names (section 1), read by nix when make install needs it
+KIT = $(shell nix eval --raw --impure --expr 'let l = builtins.fromJSON (builtins.readFile ./flake.lock); k = l.nodes.$${l.nodes.$${l.root}.inputs.kit}.locked; in "github:$${k.owner}/$${k.repo}/$${k.rev}?dir=$${k.dir}"')
+NEEDKIT = @test -x dev/agents/bin/kit || { echo "$@: no kit at dev/agents: make install"; exit 1; }
+# the kit for the checks: the one make install linked, else run from KIT (CI, or a machine before make install)
+KITRUN = $(if $(wildcard dev/agents/bin/kit),dev/agents/bin/kit,nix run "$(KIT)" --)
+
+.PHONY: install agents run-start run-check locks-check products-check verify
+
+install: ## the kit at dev/agents, the pre-commit hook that runs make verify, then make agents
+	mkdir -p dev && nix build "$(KIT)" -o dev/agents
+	hook=$$(git rev-parse --git-path hooks/pre-commit) && printf '#!/bin/sh\nexec make verify\n' > "$$hook" && chmod +x "$$hook"
 	$(MAKE) agents
 
-# The kit at the commit flake.lock pins (nix build --inputs-from drops its ?dir=, so its reference is read from the lock).
-KIT := $(shell $(PY) -c "import json; n = json.load(open('flake.lock'))['nodes']['kit']['locked']; print(f\"{n['type']}:{n['owner']}/{n['repo']}/{n['rev']}?dir={n['dir']}\")" 2>/dev/null)
+agents: ## each kind's files from agents/ (kit generate)
+	$(NEEDKIT)
+	dev/agents/bin/kit generate
 
-agents: ## each kind's agent files from agents/ (AGENTS.md, CLAUDE.md, .claude/agents/, .github/agents/), by the kit at dev/agents; AGENT_KIND=claude-code|copilot|all; after any change to agents/
-	@test -x dev/agents/bin/kit || { echo "agents: no kit at dev/agents: make install"; exit 1; }
-	dev/agents/bin/kit generate --kind $(AGENT_KIND) --root .
+run-start: ## before a role's run, ROLE=<role> (kit run-start)
+	$(NEEDKIT)
+	dev/agents/bin/kit run-start --role "$(ROLE)"
 
-agents-check: ## agents/ decoded by the kit, nothing written
-	@test -x dev/agents/bin/kit || { echo "agents-check: no kit at dev/agents: make install"; exit 1; }
-	dev/agents/bin/kit check --root .
-
-run-start: ## before a role's run: the work tree recorded; make run-start ROLE=reviewer
-	@test -x dev/agents/bin/kit || { echo "run-start: no kit at dev/agents: make install"; exit 1; }
-	@test -n "$(ROLE)" || { echo "run-start: ROLE=<role> is needed"; exit 1; }
-	dev/agents/bin/kit run-start --role $(ROLE) --root .
-
-run-check: ## after it: what changed against the role's writes (none: nothing; brief-files: only FILES=a,b; else reported)
-	@test -x dev/agents/bin/kit || { echo "run-check: no kit at dev/agents: make install"; exit 1; }
-	@test -n "$(ROLE)" || { echo "run-check: ROLE=<role> is needed"; exit 1; }
-	dev/agents/bin/kit run-check --role $(ROLE) $(if $(FILES),--files $(FILES)) --root .
-
-verify: ## the checks a commit requires, every one; the pre-commit hook runs it
-	$(MAKE) --no-print-directory products-check
-	$(MAKE) --no-print-directory agents-check
-	$(MAKE) --no-print-directory lean
-	$(MAKE) --no-print-directory parts-check
+run-check: ## after it, ROLE=<role>, FILES=<a,b> for a role that writes them (kit run-check)
+	$(NEEDKIT)
+	dev/agents/bin/kit run-check --role "$(ROLE)" $(if $(FILES),--files "$(FILES)")
 
 # kit locks asks each input's source over HTTPS; for a folder input whose repository moved it asks GitHub's compare
 # through gh, and where HTTPS fails it asks again by SSH. Both would act with a credential of the owner's, so it runs
 # with neither: dev/no.credential's gh, which never runs, first on PATH, and git with no SSH. Where it needs one, it
-# stops, naming it, and the owner is asked (agents/rules.md, The credentials).
-locks-check: ## whether each lock is outdated: flake.lock's inputs (the kit's kit locks, with no credential); changes nothing
-	@test -x dev/agents/bin/kit || { echo "locks-check: no kit at dev/agents: make install"; exit 1; }
-	PATH="$(CURDIR)/dev/no.credential:$$PATH" GIT_SSH_COMMAND=false dev/agents/bin/kit locks --root .
+# stops, naming it, and the owner is asked (agents/rules.md, The credentials). The project has no locks of its own:
+# lean/lake-manifest.json has no package.
+locks-check: ## whether each lock's source has moved past it (kit locks; then the project's own locks)
+	PATH="$(CURDIR)/dev/no.credential:$$PATH" GIT_SSH_COMMAND=false $(KITRUN) locks --root .
 
-products-check: ## whether PRODUCTS.md states what the project has (the kit's kit products)
-	@test -x dev/agents/bin/kit || { echo "products-check: no kit at dev/agents: make install"; exit 1; }
-	dev/agents/bin/kit products --root .
+products-check: ## whether PRODUCTS.md states what the project has (kit products)
+	$(KITRUN) products --root .
+
+# The project's own part of verify, after the kit's: make verify checks the work tree, so the work tree must be what
+# is staged: a change not staged, or a new file not added, stops it before the checks, and a file the checks change
+# stops it after them. Then agents/ decoded, lean/ built and its proofs checked, and the export checked.
+STAGED = git diff --quiet && test -z "$$(git ls-files --others --exclude-standard)"
+
+verify: ## the checks for what is staged, run by the pre-commit hook (then the project's own checks)
+	@if git diff --cached --name-only | grep -qE '^(PRODUCTS\.md|[^/]+\.lock)$$'; then $(MAKE) products-check; fi
+	@$(STAGED) || { echo "verify: the work tree is not what is staged (git status): make verify checks the work tree; stage the rest, or stash it (git stash push --keep-index --include-untracked)"; exit 1; }
+	$(MAKE) --no-print-directory agents-check
+	$(MAKE) --no-print-directory lean
+	$(MAKE) --no-print-directory parts-check
+	@$(STAGED) || { echo "verify: make verify changed the work tree (git status): stage what it wrote"; exit 1; }
+
+# ---------------------------------------------------------------- the project's own
+
+agents-check: ## agents/ decoded by the kit, nothing written; make verify runs it
+	$(NEEDKIT)
+	dev/agents/bin/kit check --root .
 
 # ---------------------------------------------------------------- the Lean (lean/, README.md)
 

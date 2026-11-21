@@ -21,7 +21,7 @@ Read the others only when the task touches them: `docs/decisions.md` before chan
 
 ## Every role
 
-- **Public.** The project is public: it takes nothing that cannot be read with no login, and names no private project in any file.
+- **Public.** The project is public: it takes nothing that cannot be read with no login.
 - **A definition is a definition.** The Lean defines and proves; it is not code to run, and it is `noncomputable` where the limit of logs needs it. What a component does in code is its own project's.
 - **Every claim is proved.** A comment says what its definition or theorem says, no more; a statement that is a modelling choice, not a theorem, says so. A proof rests on Lean's standard axioms only: no `sorry`, no axiom of the project's own.
 - **Markdown prose** has each paragraph and each list item on one line.
