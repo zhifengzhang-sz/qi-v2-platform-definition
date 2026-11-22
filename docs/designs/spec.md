@@ -86,6 +86,8 @@ A chanlun result series is derived from a k-line series, has no meaning apart fr
 
 Each component's spec is a structure of `Prop`s on the component (`Acquisition.Spec`, `Warehousing.Spec`, `MarketModelEngine.Spec`, `Visualization.Spec`), one field for each requirement, its doc comment saying what the requirement asks. Its objectives and features are the doc comments of the component's file and structure. An input of a process is what has been read so far, so a requirement on every input says what is given at every moment: no output waits for more input than the requirement names.
 
+The research each component's spec rests on is `docs/designs/research/` (`acquisition.md`, `warehousing.md`, `engine.md`, `visualization.md`): each algorithmic or engineering issue of the component, what is known of it with its sources, the options, and what it gives the component's objectives, requirements and features.
+
 ### Acquisition
 
 **Objectives.** Give the working space its series' k-lines on Kafka: the vendor's series, raw and clean, and the vendor's corrections, each kind on a topic of its own, named from the series' signature.

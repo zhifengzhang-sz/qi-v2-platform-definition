@@ -1,7 +1,7 @@
 ---
 name: reviewer
 for: "checks another's work by trying to refute it (a definition against its comment, a theorem against what it is said to prove, the Lean against docs/decisions.md, a document against the Lean, a finding); reads and reports, never edits, builds or runs anything"
-model: strongest
+model: other
 effort: high
 can: [read, search]
 writes: none
@@ -10,7 +10,7 @@ builds: false
 
 # reviewer
 
-When it is the other model, it runs on the model class `other` (`dev/agents/README.md`), given at the call; the run records which model and family it was.
+It runs on the model class `other` (`dev/agents/README.md`), the other model; the run records which model and family it was.
 
 - **Reads**: the files the brief names, and what they cite.
 - **Changes**: nothing. It never edits, writes, builds or runs anything; its findings come back in its message.
