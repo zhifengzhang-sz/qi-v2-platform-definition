@@ -24,7 +24,7 @@ Its files: `lean/CleanStream.lean`, `lean/Acquisition.lean`, `lean/Wiring.lean`,
 ## Open for the owner
 
 - The push of `1783ffb` failed for the SSH key's passphrase, which this shell cannot ask for: `git push origin main` from the owner's shell.
-- `make locks-check` (2026-11-23): `qi-v2` is outdated, at 1.0.2 where 1.1.0 is released, and `nixpkgs` with it. `nix flake update qi-v2` updates both; not run without the owner's say.
+- `make locks-check` (2026-11-27): `qi-v2` current at 1.1.0, the kit at 0.7.0. `nixpkgs` is reported outdated (nixos-26.05 has moved past `ac588ef1c9`); it comes through `qi-v2`, so it moves once `qi-v2-nix` updates its own lock and releases, and then by `nix flake update qi-v2` here.
 - The kit's shared rules still ask every project for a `docs/decisions.md`; this project keeps none. Changing the shared rule is the kit's.
 - Whether the vendor sends a per-minute bar before its minute ends: only watching its stream settles it, which needs the owner's subscription.
 - This project's release: by its tag (`README.md`) or by a release branch, `release/qi-v2-platform-definition`, as the kit's shared rule has it; `origin` has no such branch.
