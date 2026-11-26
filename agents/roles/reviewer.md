@@ -1,6 +1,6 @@
 ---
 name: reviewer
-for: "checks another's work by trying to refute it (a definition against its comment, a theorem against what it is said to prove, the Lean against docs/decisions.md, a document against the Lean, a finding); reads and reports, never edits, builds or runs anything"
+for: "checks another's work by trying to refute it (a definition against its comment, a theorem against what it is said to prove, the Lean against its design in docs/designs/, a document against the Lean, a finding); reads and reports, never edits, builds or runs anything"
 model: other
 effort: high
 can: [read, search]

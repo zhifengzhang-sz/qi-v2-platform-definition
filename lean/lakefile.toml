@@ -1,5 +1,5 @@
 name = "qi-v2-platform-definition"
-defaultTargets = ["Kahn", "Contract", "Kafka", "Acquisition", "Warehousing", "Visualization", "MarketModelEngine", "Workspace", "Wiring"]
+defaultTargets = ["Kahn", "Contract", "Kafka", "Acquisition", "Warehousing", "Visualization", "MarketModelEngine", "Workspace", "Wiring", "CleanStream"]
 
 [[lean_lib]]
 name = "Kahn"
@@ -28,3 +28,6 @@ name = "MarketModelEngine"
 
 [[lean_lib]]
 name = "Wiring"
+
+[[lean_lib]]
+name = "CleanStream"

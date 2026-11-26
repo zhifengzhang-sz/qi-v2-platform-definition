@@ -10,10 +10,11 @@ qi-v2-platform-definition: the platform's formal definition in Lean, on Kahn pro
 2. `docs/milestones.md`: what the work is for.
 3. `docs/process.md`: how a session starts and ends, and where each rule lives.
 
-Read the others only when the task touches them: `docs/decisions.md` before changing what a definition says; `PRODUCTS.md` before a change to what the project gives or takes.
+Read the others only when the task touches them: the design in `docs/designs/` before changing what a definition says; `PRODUCTS.md` before a change to what the project gives or takes.
 
 **The rules.**
 
+- **No decision log.** A design follows from its model and lives in `docs/designs/` with its reasoning: it is not a decision, and no one is named for it. What is chosen is a model's parameters, each stated in its design with what it sets. This project keeps no `docs/decisions.md`, whatever the kit's shared rules say of one.
 - **The owner's local file**: `todo.md`, never committed.
 - **The repository.** This folder is on `main`; its remote is `origin`, `zhifengzhang-sz/qi-v2-platform-definition` on GitHub, public; pushed after a commit.
 - **What it takes, and from where**: the tools, Lean among them, from the flake. No file of another project is reached by a path.

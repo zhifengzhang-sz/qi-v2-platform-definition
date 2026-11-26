@@ -21,8 +21,9 @@ The platform's formal definition in Lean 4, on Kahn process networks (Kahn, 1974
 | `lean/MarketModelEngine.lean` | the market model engine (optional): a worker on one clean topic, its series, giving its results, each one of chanlun's records, and a publisher writing them to its own topic |
 | `lean/Workspace.lean` | the working space: the four components wired by the topics, acquisition alone reading the input logs, the system one process of them; a table of the database the rows pushed into it, in no order |
 | `lean/Wiring.lean` | the components as one working space, of one series, the engine optional: each topic named by the naming from the series' signature and its kind, no two of one name; every message a contract's record or made of them; what the whole system comes to; several working spaces side by side, each one a wiring makes, of one naming, no two of one signature |
+| `lean/CleanStream.lean` | the clean k-line stream, a log of market's k-lines, each at its place, their dates rising, each keeping market's rules; the vendor's feed, the log of its statements as read, its features shown on a sample feed; the clean data of a feed, and that no process gives the clean data of every feed |
 
-The decisions behind the definitions: `docs/decisions.md`. How an implementation follows each definition, what it must give and how that is checked: `docs/guide/`.
+The design behind the definitions, with its reasoning: `docs/designs/`. How an implementation follows each definition, what it must give and how that is checked: `docs/guide/`.
 
 ## The product
 

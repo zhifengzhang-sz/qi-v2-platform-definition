@@ -13,7 +13,7 @@ Nix with flakes; GitHub's access for a push (an SSH key on the account). Then th
 | the Lake package | `lean/lakefile.toml`, `lean/lake-manifest.json`, `lean/lean-toolchain` | yes | the sessions |
 | what it owns, gives and takes | `PRODUCTS.md` | yes | the sessions, in the commit of the change it describes |
 | the project's machinery | `flake.nix`, `flake.lock`, `Makefile`, `dev/no.credential/`, `dev/axioms.lean` (the axiom audit `make lean` runs), `dev/parts.lean` (the export `make parts` makes), `dev/parts.check.py` (the form `make parts-check` checks), `.envrc` | yes | the sessions |
-| the state of the work | `docs/opening.md`, `docs/milestones.md`, `docs/decisions.md`, `docs/designs/` (the designs a later session relies on: `spec.md`; `research/`, the research each component's spec rests on) | yes | each session, at its end |
+| the state of the work | `docs/opening.md`, `docs/milestones.md`, `docs/designs/` (the designs a later session relies on, each with its reasoning and its model's parameters: `spec.md`, `acquisition.md`; `research/`, the research each component's spec rests on) | yes | each session, at its end |
 | how an implementation is made from each definition: what it implements, the method, what is its own, how it is checked, how it takes the definition | `docs/guide/` (`market.md`, `chanlun.md`); `docs/acquisition.md`, acquisition's in words, until acquisition's guide takes its place | yes | the sessions, with the definition it guides |
 | the rules for agents, their source | `agents/` | yes | the sessions, the owner approving |
 | the rules for agents, generated | `AGENTS.md`, `CLAUDE.md`, `.claude/agents/`, `.claude/workflows/`, `.github/agents/`, `.github/hooks/kit.json`, `agents.generated`; a run's record, `agents.run/`; the developer's own `agents.local.json` | no | `make agents` and `make run-start`, by the kit |
@@ -27,7 +27,7 @@ Nix with flakes; GitHub's access for a push (an SSH key on the account). Then th
 |---|---|
 | the standing rules, for every agent and the session | `agents/rules.md` (its generated copy `AGENTS.md`) |
 | each role's | `agents/roles/<role>.md` |
-| the decisions | `docs/decisions.md` |
+| a model's parameters | the design they belong to, in `docs/designs/` |
 | rules the owner gives in a session | the opening's Standing rules learnt, until approved for `agents/rules.md` |
 
 ## A session
